@@ -1,0 +1,14 @@
+{
+  "name": "agentflow-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade multi-agent AI search system",
+  "scripts": {
+    "dev": "docker-compose up --build",
+    "dev:infra": "docker-compose up redis postgres -d",
+    "stop": "docker-compose down",
+    "clean": "docker-compose down -v --remove-orphans",
+    "logs": "docker-compose logs -f",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend/api-gateway && npm install --prefix backend/orchestrator && npm install --prefix backend/researcher-agent && npm install --prefix backend/crawler-agent && npm install --prefix backend/critic-agent && npm install --prefix backend/shared"
+  }
+}
