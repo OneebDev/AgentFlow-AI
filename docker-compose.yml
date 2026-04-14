@@ -1,148 +1,27 @@
+version: '3.8'
+
 services:
-  # ─── Infrastructure ───────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:latest
+    container_name: agentflow-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - agentflow-network
+
   redis:
-    image: redis:7-alpine
-    restart: unless-stopped
+    image: redis:latest
+    container_name: agentflow-redis
     ports:
-      - '6379:6379'
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "6379:6379"
     networks:
-      - agentflow
-
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-agentflow}
-      POSTGRES_USER: ${POSTGRES_USER:-agentflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentflow_secret}
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/shared/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-agentflow}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - agentflow
-
-  # ─── Backend Services ─────────────────────────────────────────────────────────
-  api-gateway:
-    build:
-      context: ./backend
-      dockerfile: api-gateway/Dockerfile
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-    env_file:
-      - ./backend/api-gateway/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    networks:
-      - agentflow
-    labels:
-      - 'service=api-gateway'
-
-  orchestrator:
-    build:
-      context: ./backend
-      dockerfile: orchestrator/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - ./backend/orchestrator/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    networks:
-      - agentflow
-    labels:
-      - 'service=orchestrator'
-
-  researcher-agent:
-    build:
-      context: ./backend
-      dockerfile: researcher-agent/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - ./backend/researcher-agent/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - agentflow
-    labels:
-      - 'service=researcher-agent'
-    deploy:
-      replicas: 1
-
-  crawler-agent:
-    build:
-      context: ./backend
-      dockerfile: crawler-agent/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - ./backend/crawler-agent/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - agentflow
-    labels:
-      - 'service=crawler-agent'
-    deploy:
-      replicas: 2  # scale out for fetch throughput
-
-  critic-agent:
-    build:
-      context: ./backend
-      dockerfile: critic-agent/Dockerfile
-    restart: unless-stopped
-    env_file:
-      - ./backend/critic-agent/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    networks:
-      - agentflow
-    labels:
-      - 'service=critic-agent'
-
-  # ─── Frontend ─────────────────────────────────────────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - '5173:80'
-    environment:
-      - VITE_API_URL=http://localhost:3000
-    depends_on:
-      - api-gateway
-    networks:
-      - agentflow
-
-volumes:
-  redis_data:
-  postgres_data:
+      - agentflow-network
 
 networks:
-  agentflow:
+  agentflow-network:
     driver: bridge
+
+volumes:
+  mongodb_data:
