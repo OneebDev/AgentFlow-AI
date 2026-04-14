@@ -44,8 +44,7 @@ export class CriticService {
         );
 
         // 4. Save Final Result to MongoDB
-        await finalRepo.createFinalResult({
-            jobId:      dbJobId,
+        await finalRepo.createFinalResult(dbJobId.toString(), {
             bestResult: evaluation.bestResult,
             rankedList: evaluation.rankedList,
             summary:    evaluation.summary,
