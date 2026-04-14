@@ -21156,3 +21156,441 @@
         "jobId": "8"
     }
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:54:58.986Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.279Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.826Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.835Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.842Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.844Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.845Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:01.847Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:22.894Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:25.835Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What are the implications of giving versus sharing in interpersonal relationships across different cultures?",
+            "How does the act of giving influence psychological well-being in individuals, particularly in charitable contexts?",
+            "In what ways do virtual gifts in online platforms affect social dynamics and user engagement?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:29.642Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "analyze the impact of digital communication on modern lecture delivery methods",
+            "explore the pedagogical theories underpinning effective lecture design in higher education",
+            "investigate how lecture formats (traditional vs. online) influence student engagement and learning outcomes"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:34.729Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20quantum%20computing%20but%20no%20videos"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "An In-Depth Lecture on Quantum Computing Principles and Algorithms Without Visual Aids",
+            "Exploring Quantum Computing Fundamentals: A Comprehensive Text-Based Lecture",
+            "An Audio-Based Lecture Series on Quantum Computing Concepts and Applications, Excluding Video Content"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:37.859Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user is asking for educational content on quantum computing while explicitly excluding video content. The best format for this request would be 'articles' as they offer in-depth and structured information suitable for a lecture-like format. A 'summary' would be appropriate to condense the information into a lecture-like presentation.",
+        "directAnswer": "",
+        "queries": [
+            "quantum computing lecture notes",
+            "introduction to quantum computing articles",
+            "quantum computing overview for beginners"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:37.940Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de2b39a992689c9cc33385",
+            "status": "The user is asking for educational content on quantum computing while explicitly excluding video content. The best format for this request would be 'articles' as they offer in-depth and structured information suitable for a lecture-like format. A 'summary' would be appropriate to condense the information into a lecture-like presentation.",
+            "message": "The user is asking for educational content on quantum computing while explicitly excluding video content. The best format for this request would be 'articles' as they offer in-depth and structured information suitable for a lecture-like format. A 'summary' would be appropriate to condense the information into a lecture-like presentation."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:37.964Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de2b39a992689c9cc33385",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "google"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:37.986Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:37.990Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "quantum computing lecture notes",
+            "introduction to quantum computing articles",
+            "quantum computing overview for beginners"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:37.992Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:44.042Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "quantum computing lecture notes",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:46.851Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "introduction to quantum computing articles",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:51.856Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user is seeking in-depth information on quantum computing principles and algorithms but has specified no visual aids, likely meaning no videos or images. Therefore, detailed articles would be most appropriate to provide a comprehensive understanding. Since the request is for an in-depth lecture in text form, a summary of articles is suitable.",
+        "directAnswer": "",
+        "queries": [
+            "Quantum computing principles and algorithms explained",
+            "Detailed lecture notes on quantum computing algorithms",
+            "In-depth articles on quantum computing without visual aids"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:51.873Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de2b47a992689c9cc3339c",
+            "status": "The user is seeking in-depth information on quantum computing principles and algorithms but has specified no visual aids, likely meaning no videos or images. Therefore, detailed articles would be most appropriate to provide a comprehensive understanding. Since the request is for an in-depth lecture in text form, a summary of articles is suitable.",
+            "message": "The user is seeking in-depth information on quantum computing principles and algorithms but has specified no visual aids, likely meaning no videos or images. Therefore, detailed articles would be most appropriate to provide a comprehensive understanding. Since the request is for an in-depth lecture in text form, a summary of articles is suitable."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:51.878Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de2b47a992689c9cc3339c",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "google"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:51.887Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:51.888Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "Quantum computing principles and algorithms explained",
+            "Detailed lecture notes on quantum computing algorithms",
+            "In-depth articles on quantum computing without visual aids"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:55:51.889Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:53.907Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Quantum computing principles and algorithms explained",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:59.835Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Detailed lecture notes on quantum computing algorithms",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:59.963Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "quantum computing overview for beginners",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:59.974Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de2b39a992689c9cc33385",
+        "totalResults": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:59.989Z",
+    "message": "Critic starting evaluation for job: 69de2b39a992689c9cc33385",
+    "meta": {
+        "rawCount": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:55:59.997Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de2b39a992689c9cc33385",
+        "after": 13,
+        "before": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:00.025Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "10"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:03.804Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "In-depth articles on quantum computing without visual aids",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:03.811Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de2b47a992689c9cc3339c",
+        "totalResults": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:03.817Z",
+    "message": "Critic starting evaluation for job: 69de2b47a992689c9cc3339c",
+    "meta": {
+        "rawCount": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:03.822Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de2b47a992689c9cc3339c",
+        "after": 15,
+        "before": 15
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:03.832Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "11"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:12.528Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:12.542Z",
+    "message": "Critic: evaluation completed for job: 69de2b39a992689c9cc33385",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:12.586Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "9"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:13.357Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:13.365Z",
+    "message": "Critic: evaluation completed for job: 69de2b47a992689c9cc3339c",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:56:13.370Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "10"
+    }
+}
