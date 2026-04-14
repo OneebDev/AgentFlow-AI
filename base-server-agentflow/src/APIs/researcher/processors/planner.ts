@@ -1,11 +1,10 @@
+import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import logger from '../../../handlers/logger';
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-/**
- * Super-Agent Instruction: Autonomous Analysis
- */
 function buildPlannerInstruction(): string {
     return `
 You are an Autonomous Research Architect. Your task is to analyze the user's prompt and decide the best research strategy.
@@ -13,12 +12,9 @@ You must determine the intent, language, and best output format yourself.
 
 ANALYSIS RULES:
 1. Determine the language of the prompt and respond in that language.
-2. Decide the format: 
-   - 'videos' if they ask to watch/see/videos.
-   - 'news' if it's about current events.
-   - 'products' if it's about buying/shopping.
-   - 'articles' for everything else (learning/research).
-3. Decide the outputType: 'summary' for complex topics, 'list' for quick facts.
+2. Decide the format: 'videos', 'news', 'products', or 'articles'.
+3. Decide the outputType: 'summary' or 'list'.
+4. Generate exactly 1 to 3 strategic search queries.
 
 JSON RESPONSE SHAPE:
 {
@@ -32,22 +28,33 @@ JSON RESPONSE SHAPE:
 }
 
 export async function planResearch(topic: string) {
-    const model = genAI.getGenerativeModel({
-        model:            process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-        systemInstruction: buildPlannerInstruction(),
-        generationConfig: {
-            temperature:      0.4,
-            maxOutputTokens:  1000,
-            responseMimeType: 'application/json',
-        },
-    } as any);
-
+    const useOpenAI = process.env.AI_ENGINE === 'openai';
+    
     try {
-        const result = await model.generateContent(`User Prompt: "${topic}"`);
-        const raw    = result.response.text().trim();
-        const parsed = JSON.parse(raw);
+        let raw = '';
+        
+        if (useOpenAI) {
+            const response = await openai.chat.completions.create({
+                model: process.env.OPENAI_MODEL || 'gpt-4o',
+                messages: [
+                    { role: 'system', content: buildPlannerInstruction() },
+                    { role: 'user', content: `User Prompt: "${topic}"` }
+                ],
+                response_format: { type: 'json_object' }
+            });
+            raw = response.choices[0].message.content || '{}';
+        } else {
+            const model = genAI.getGenerativeModel({
+                model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+                systemInstruction: buildPlannerInstruction(),
+                generationConfig: { responseMimeType: 'application/json' }
+            } as any);
+            const result = await model.generateContent(`User Prompt: "${topic}"`);
+            raw = result.response.text();
+        }
 
-        logger.info('Autonomous Plan Generated', { meta: parsed });
+        const parsed = JSON.parse(raw);
+        logger.info('Autonomous Plan Generated', { meta: { engine: useOpenAI ? 'openai' : 'gemini', ...parsed } });
 
         return {
             thought:    parsed.thought,

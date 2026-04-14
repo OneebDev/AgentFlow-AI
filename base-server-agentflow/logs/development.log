@@ -17860,3 +17860,263 @@
         "SERVER_URL": "http://localhost:3000"
     }
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:21.604Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.581Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.826Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.837Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.842Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.846Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.846Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:25:23.847Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:20.715Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.603Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.837Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.843Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.851Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.853Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.854Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:30:21.855Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:56.077Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.192Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.367Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.375Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.382Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.384Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.385Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:35:57.386Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:05.324Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.569Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.741Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.747Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.751Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.753Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.754Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:06.754Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:36.964Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:37.978Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.196Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.205Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.211Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.214Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.215Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:38:38.216Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
