@@ -148,7 +148,18 @@ export class ResearcherService {
             });
 
             const parsed = JSON.parse(response.choices[0].message.content || '{"suggestions": []}');
-            return parsed.suggestions || Object.values(parsed)[0] || [];
+            
+            // Strictly extract an array from whatever format GPT chose to use
+            let results: string[] = [];
+            if (Array.isArray(parsed)) results = parsed;
+            else if (Array.isArray(parsed.suggestions)) results = parsed.suggestions;
+            else if (Array.isArray(parsed.queries)) results = parsed.queries;
+            else if (typeof parsed === 'object') {
+                const firstVal = Object.values(parsed)[0];
+                if (Array.isArray(firstVal)) results = firstVal as string[];
+                else results = Object.values(parsed).filter(v => typeof v === 'string') as string[];
+            }
+            return results.slice(0, 3); // Return max 3 elements
         } catch (err) {
             return [];
         }

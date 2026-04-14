@@ -14,18 +14,6 @@ import { EJobStatus } from '../_shared/types/agents.interface';
 
 const researcherService = new ResearcherService();
 
-/**
- * Build a list of missing required clarification fields.
- * Returns an empty array if all fields are present.
- */
-function getMissingClarifications(payload: IResearchRequest): string[] {
-    const missing: string[] = [];
-    if (!payload.format) missing.push('format — one of: articles | videos | products | news');
-    if (!payload.language) missing.push('language — e.g. English, Urdu, Hindi');
-    if (!payload.outputType) missing.push('outputType — one of: summary | list');
-    return missing;
-}
-
 export default {
     start: asyncHandler(async (request: Request, response: Response, next: NextFunction) => {
         try {
@@ -36,20 +24,6 @@ export default {
             if (error) {
                 return httpError(next, error, request, 422);
             }
-
-            // ── Clarification Gate ────────────────────────────────────────────
-            // Before dispatching to any agent, all three fields must be present.
-            // If any are missing, stop here and ask the user — do NOT queue a job.
-            const missing = getMissingClarifications(payload);
-            if (missing.length > 0) {
-                return httpResponse(response, request, 200, 'Clarification needed before research can begin', {
-                    status: 'clarification_needed',
-                    message: '❓ Please provide the missing information to proceed:',
-                    missing,
-                    hint: 'Re-submit your request with all three fields filled in.',
-                });
-            }
-            // ─────────────────────────────────────────────────────────────────
 
             const result = await researcherService.initiateResearch(payload);
             httpResponse(response, request, 202, 'Research job initiated successfully', result);

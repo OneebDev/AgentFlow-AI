@@ -303,7 +303,7 @@ export default function Home() {
 
                                 {/* Suggestions Dropdown */}
                                 <AnimatePresence>
-                                    {suggestions.length > 0 && (
+                                    {Array.isArray(suggestions) && suggestions.length > 0 && (
                                         <motion.div
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}

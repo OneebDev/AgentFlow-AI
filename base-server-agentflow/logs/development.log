@@ -18172,3 +18172,348 @@
         "SERVER_URL": "http://localhost:3000"
     }
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:57.821Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:58.844Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:58.998Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:59.003Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:59.007Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:59.008Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:59.009Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:44:59.009Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:50:20.920Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=Wha"
+        },
+        "message": "Suggestions retrieved",
+        "data": "Study the detrimental effects of plastic waste disposal, specifically focusing on the degradation of marine habitats and the effects on biodiversity."
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:50:21.440Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=What%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": "What are the underlying causes of antibiotic resistance and what strategies can mitigate its spread?"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:56.330Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.612Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.843Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.856Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.863Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.866Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.867Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:51:57.869Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:46.835Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:47.884Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.121Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.129Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.135Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.137Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.138Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:53:48.139Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:55:18.347Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What are the latest advancements in quantum computing as of 2023?",
+            "What impact does climate change have on global migration patterns?",
+            "What are the socio-economic effects of artificial intelligence in the healthcare industry?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:55:20.907Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20is%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What is the impact of artificial intelligence on data privacy and security?",
+            "What is the historical significance of the 19th Amendment in the United States women's suffrage movement?",
+            "What is the process of nuclear fusion and its potential for sustainable energy production?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:57:46.851Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=mujhain%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Investigating the Impact of Insufficient Sleep on Cognitive Functioning and Daily Productivity: A Study of Young Adults",
+            "An Ethnographic Exploration of Expressions of Happiness in Diverse Cultural Contexts and Their Psychological Implications",
+            "Understanding the Psychological Basis of Uncertainty and Its Influence on Decision-Making Processes in Emerging Adults"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:57:51.857Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=mujhain%20quan"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "The Historical Significance and Influence of Mujahin Quan in Modern Martial Arts",
+            "Analyzing the Cultural Impact of Mujahin Quan in Eastern Traditions and Practices",
+            "Techniques and Training Regimens: A Study on the Discipline of Mujahin Quan Martial Art"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:57:54.541Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=mujhain%20quantum%20ener"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Exploration of Quantum Energy Systems in Sustainable Technologies",
+            "The Role of Quantum Energy in Next-Generation Computing",
+            "Quantum Energy Storage Solutions: Innovations and Challenges"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:57:56.662Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=mujhain%20quantum%20energy%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "mujhe quantum energy k baray main urdu main tafseelaat chahiye"
+        ]
+    }
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T10:58:05.233Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": false,
+        "statusCode": 422,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "\"format\" must be one of [articles, videos, products, news]",
+        "data": null,
+        "trace": {
+            "error": "ValidationError: \"format\" must be one of [articles, videos, products, news]"
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T10:58:05.593Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=muj"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Analysis of Mujahideen Strategies and Tactics in Modern Conflict Zones",
+            "Impact of Muj Music in the Development of Neo-Sufi Movements",
+            "Study on the Evolution and Influence of Mujy Dance in Central Asian Festivals"
+        ]
+    }
+}
