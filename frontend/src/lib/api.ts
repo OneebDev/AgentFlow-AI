@@ -10,6 +10,17 @@ const api = axios.create({
     },
 });
 
+// Avoid crashing on network errors
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.message === 'Network Error') {
+            console.warn('Backend is currently unreachable. Retrying...');
+        }
+        return Promise.reject(error);
+    }
+);
+
 export type TResearchFormat = 'articles' | 'videos' | 'products' | 'news';
 export type TOutputType    = 'summary'  | 'list';
 
@@ -49,8 +60,13 @@ export const createJobStream = (jobId: string): EventSource => {
 
 export const getSuggestions = async (prompt: string): Promise<string[]> => {
     if (!prompt || prompt.length < 3) return [];
-    const { data } = await api.get(`/researcher/suggest?q=${encodeURIComponent(prompt)}`);
-    return data.data || [];
+    try {
+        const { data } = await api.get(`/researcher/suggest?q=${encodeURIComponent(prompt)}`);
+        return data.data || [];
+    } catch (err) {
+        // Silently fail suggestions to avoid UI crashes
+        return [];
+    }
 };
 
 export default api;

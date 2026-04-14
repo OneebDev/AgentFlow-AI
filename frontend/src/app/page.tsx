@@ -466,7 +466,7 @@ export default function Home() {
                                         <button
                                             key={idx}
                                             onClick={() => {
-                                                setInputValue(sug);
+                                                handleSearch(sug);
                                                 setAiSuggestions([]);
                                             }}
                                             className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-white/5 last:border-0 flex items-center gap-3"
