@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useSearchStore } from '@/store/useSearchStore';
-import { submitResearch, createJobStream, type TResearchFormat, type TOutputType } from '@/lib/api';
+import { submitResearch, createJobStream, getSuggestions, type TResearchFormat, type TOutputType } from '@/lib/api';
 import {
     Search, Loader2, Play, CheckCircle2, AlertCircle,
     FileText, Video, ShoppingBag, Newspaper, ExternalLink,
@@ -69,19 +69,20 @@ export default function Home() {
     } = useSearchStore();
 
     const [inputValue, setInputValue] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    // Filters start as null — user MUST explicitly choose each one.
-    // null triggers the clarification UI instead of sending the request.
     const [format,     setFormat]     = useState<TResearchFormat | null>(null);
     const [language,   setLanguage]   = useState<string | null>(null);
     const [outputType, setOutputType] = useState<TOutputType | null>(null);
-
-    // Tracks which fields the user tried to submit without selecting
     const [showClarification, setShowClarification] = useState(false);
 
     const streamRef = useRef<EventSource | null>(null);
+    const suggestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => () => streamRef.current?.close(), []);
+    useEffect(() => () => {
+        if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
+        streamRef.current?.close();
+    }, []);
 
     const closeStream = () => {
         streamRef.current?.close();
@@ -92,10 +93,26 @@ export default function Home() {
         closeStream();
         reset();
         setInputValue('');
+        setSuggestions([]);
         setFormat(null);
         setLanguage(null);
         setOutputType(null);
         setShowClarification(false);
+    };
+
+    const handleInputChange = (val: string) => {
+        setInputValue(val);
+        if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
+        
+        if (val.length < 3) {
+            setSuggestions([]);
+            return;
+        }
+
+        suggestTimeoutRef.current = setTimeout(async () => {
+            const res = await getSuggestions(val);
+            setSuggestions(res);
+        }, 500);
     };
 
     const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
@@ -109,6 +126,7 @@ export default function Home() {
         // ─────────────────────────────────────────
 
         try {
+            setSuggestions([]); // Clear suggestions on search
             const data = await submitResearch(inputValue, format, language, outputType);
 
             if (data?.status === 'clarification_needed') {
@@ -264,7 +282,7 @@ export default function Home() {
                                     <input
                                         type="text"
                                         value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onChange={(e) => handleInputChange(e.target.value)}
                                         placeholder="What do you want to research today?"
                                         className="relative w-full glass-card px-6 py-5 text-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all bg-gray-900/50"
                                     />
@@ -276,6 +294,32 @@ export default function Home() {
                                         <span>Start</span>
                                     </button>
                                 </div>
+
+                                {/* Suggestions Dropdown */}
+                                <AnimatePresence>
+                                    {suggestions.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="mt-2 glass-card overflow-hidden shadow-2xl border-white/10"
+                                        >
+                                            {suggestions.map((suggestion, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => {
+                                                        setInputValue(suggestion);
+                                                        setSuggestions([]);
+                                                    }}
+                                                    className="w-full px-6 py-3 text-left text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 last:border-0 flex items-center gap-3"
+                                                >
+                                                    <Search size={14} className="text-brand-primary" />
+                                                    {suggestion}
+                                                </button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </form>
                         </motion.div>
                     )}

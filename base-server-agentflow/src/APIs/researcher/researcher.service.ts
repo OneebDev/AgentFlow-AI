@@ -129,4 +129,28 @@ export class ResearcherService {
         const results = await finalRepo.findByJobId(jobId);
         return results;
     }
+
+    async suggest(prompt: string): Promise<string[]> {
+        if (!prompt || prompt.length < 3) return [];
+        
+        try {
+            const openai = new (require('openai'))({ apiKey: process.env.OPENAI_API_KEY });
+            const response = await openai.chat.completions.create({
+                model: process.env.OPENAI_MODEL || 'gpt-4o',
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: 'You are a search query optimizer. Given a partial or full prompt, generate 3 highly specific and improved versions of the research topic. Return ONLY a JSON array of strings.' 
+                    },
+                    { role: 'user', content: `Prompt: "${prompt}"` }
+                ],
+                response_format: { type: 'json_object' }
+            });
+
+            const parsed = JSON.parse(response.choices[0].message.content || '{"suggestions": []}');
+            return parsed.suggestions || Object.values(parsed)[0] || [];
+        } catch (err) {
+            return [];
+        }
+    }
 }

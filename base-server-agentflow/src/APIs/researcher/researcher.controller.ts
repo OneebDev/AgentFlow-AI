@@ -161,4 +161,12 @@ export default {
         // Client disconnected (tab closed, navigate away, etc.)
         request.on('close', cleanup);
     },
+    suggest: asyncHandler(async (request: Request, response: Response) => {
+        const { q } = request.query;
+        if (!q || typeof q !== 'string') {
+            return httpResponse(response, request, 200, 'Empty prompt', []);
+        }
+        const suggestions = await researcherService.suggest(q);
+        httpResponse(response, request, 200, 'Suggestions retrieved', suggestions);
+    }),
 };

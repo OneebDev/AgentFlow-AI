@@ -47,4 +47,10 @@ export const createJobStream = (jobId: string): EventSource => {
     return new EventSource(`${API_BASE_URL}/researcher/${jobId}/stream`);
 };
 
+export const getSuggestions = async (prompt: string): Promise<string[]> => {
+    if (!prompt || prompt.length < 3) return [];
+    const { data } = await api.get(`/researcher/suggest?q=${encodeURIComponent(prompt)}`);
+    return data.data || [];
+};
+
 export default api;
