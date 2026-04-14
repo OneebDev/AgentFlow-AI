@@ -75,14 +75,20 @@ export default function Home() {
     const [language,   setLanguage]   = useState<string | null>(null);
     const [outputType, setOutputType] = useState<TOutputType | null>(null);
     const [showClarification, setShowClarification] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
     const streamRef = useRef<EventSource | null>(null);
     const suggestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => () => {
-        if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
-        streamRef.current?.close();
+    useEffect(() => {
+        setIsMounted(true);
+        return () => {
+            if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
+            streamRef.current?.close();
+        };
     }, []);
+
+    if (!isMounted) return null; // Prevents Hydration Mismatch errors caused by browser extensions
 
     const closeStream = () => {
         streamRef.current?.close();
