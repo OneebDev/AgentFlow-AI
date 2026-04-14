@@ -1,586 +1,573 @@
 'use client';
 
-import { useState, useEffect, useRef, type FormEvent } from 'react';
-import { useSearchStore } from '@/store/useSearchStore';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { submitResearch, createJobStream, getSuggestions, type TResearchFormat, type TOutputType } from '@/lib/api';
 import {
     Search, Loader2, Play, CheckCircle2, AlertCircle,
     FileText, Video, ShoppingBag, Newspaper, ExternalLink,
-    List, AlignLeft,
+    List, AlignLeft, Send, Sparkles, MessageSquare, Plus,
+    Trash2, ChevronDown, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ── Filter option definitions ─────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-const FORMAT_OPTIONS: { value: TResearchFormat; label: string; icon: React.ReactNode }[] = [
-    { value: 'articles',  label: 'Articles',  icon: <FileText    size={13} /> },
-    { value: 'videos',    label: 'Videos',    icon: <Video       size={13} /> },
-    { value: 'news',      label: 'News',      icon: <Newspaper   size={13} /> },
-    { value: 'products',  label: 'Products',  icon: <ShoppingBag size={13} /> },
+type ChatMessage = {
+    id: string;
+    role: 'user' | 'agent';
+    content: string; // The query OR the basic response
+    jobId?: string;
+    status?: 'idle' | 'researching' | 'crawling' | 'critiquing' | 'completed' | 'failed';
+    thought?: string;
+    results?: any; // the actual research results
+    error?: string;
+};
+
+type ChatSession = {
+    id: string;
+    title: string;
+    messages: ChatMessage[];
+    createdAt: number;
+};
+
+// ── Filter Options ────────────────────────────────────────────────────────────
+
+const FORMAT_OPTIONS = [
+    { value: 'articles', label: 'Articles', icon: <FileText size={13} /> },
+    { value: 'videos', label: 'Videos', icon: <Video size={13} /> },
+    { value: 'news', label: 'News', icon: <Newspaper size={13} /> },
+    { value: 'products', label: 'Products', icon: <ShoppingBag size={13} /> },
 ];
 
 const LANGUAGE_OPTIONS = [
     { value: 'English', label: 'English' },
-    { value: 'Urdu',    label: 'اردو'    },
-    { value: 'Hindi',   label: 'हिंदी'   },
+    { value: 'Urdu', label: 'اردو' },
+    { value: 'Hindi', label: 'हिंदी' },
 ];
 
-const OUTPUT_OPTIONS: { value: TOutputType; label: string; icon: React.ReactNode }[] = [
-    { value: 'list',    label: 'List',    icon: <List      size={13} /> },
-    { value: 'summary', label: 'Summary', icon: <AlignLeft size={13} /> },
+const SUGGESTIONS_PLACEHOLDER = [
+    "Research quantum entanglement",
+    "Best budget laptops under $500",
+    "Latest artificial intelligence news",
+    "Compare Apple M3 vs Snapdragon X Elite"
 ];
 
-// ── Pill component ────────────────────────────────────────────────────────────
-
-function Pill({
-    active,
-    invalid,
-    onClick,
-    children,
-}: {
-    active:   boolean;
-    invalid?: boolean;
-    onClick:  () => void;
-    children: React.ReactNode;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all select-none
-                ${active
-                    ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/30'
-                    : invalid
-                    ? 'text-red-400 ring-1 ring-red-500/50 hover:text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-        >
-            {children}
-        </button>
-    );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main Page Component ───────────────────────────────────────────────────────
 
 export default function Home() {
-    const {
-        jobId, status, topic, thought, results, errorMessage,
-        setJob, setStatus, setResults, setError, reset,
-    } = useSearchStore();
+    const [isMounted, setIsMounted] = useState(false);
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [currentSessionId, setCurrentSessionId] = useState<string>('new');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const [inputValue, setInputValue] = useState('');
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+    const [isTyping, setIsTyping] = useState(false);
 
-    const [format,     setFormat]     = useState<TResearchFormat | null>(null);
-    const [language,   setLanguage]   = useState<string | null>(null);
+    // Filters
+    const [format, setFormat] = useState<TResearchFormat | null>(null);
+    const [language, setLanguage] = useState<string | null>(null);
     const [outputType, setOutputType] = useState<TOutputType | null>(null);
-    const [showClarification, setShowClarification] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
 
     const streamRef = useRef<EventSource | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const suggestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Initial Load & Mount
     useEffect(() => {
         setIsMounted(true);
+        const saved = localStorage.getItem('agentflow_sessions');
+        if (saved) {
+            try {
+                setSessions(JSON.parse(saved));
+            } catch (e) {
+                console.error(e);
+            }
+        }
         return () => {
             if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
             streamRef.current?.close();
         };
     }, []);
 
-    if (!isMounted) return null; // Prevents Hydration Mismatch errors caused by browser extensions
+    // Save to LocalStorage
+    useEffect(() => {
+        if (isMounted && sessions.length > 0) {
+            localStorage.setItem('agentflow_sessions', JSON.stringify(sessions));
+        }
+    }, [sessions, isMounted]);
 
-    const closeStream = () => {
-        streamRef.current?.close();
-        streamRef.current = null;
+    // Auto-scroll to bottom
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleReset = () => {
-        closeStream();
-        reset();
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+    const messages = currentSession?.messages || [];
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    if (!isMounted) return null;
+
+    // ── Handlers ──────────────────────────────────────────────────────────────
+
+    const createNewSession = () => {
+        setCurrentSessionId('new');
         setInputValue('');
-        setSuggestions([]);
-        setFormat(null);
-        setLanguage(null);
-        setOutputType(null);
-        setShowClarification(false);
+        setAiSuggestions([]);
+        streamRef.current?.close();
+    };
+
+    const deleteSession = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setSessions(prev => prev.filter(s => s.id !== id));
+        if (currentSessionId === id) setCurrentSessionId('new');
     };
 
     const handleInputChange = (val: string) => {
         setInputValue(val);
         if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
-        
+
         if (val.length < 3) {
-            setSuggestions([]);
+            setAiSuggestions([]);
             return;
         }
 
         suggestTimeoutRef.current = setTimeout(async () => {
+            setIsTyping(true);
             const res = await getSuggestions(val);
-            setSuggestions(res);
+            setAiSuggestions(res);
+            setIsTyping(false);
         }, 500);
     };
 
-    const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!inputValue.trim()) return;
+    const updateAgentMessage = (sessionId: string, msgId: string, updates: Partial<ChatMessage>) => {
+        setSessions(prev => prev.map(s => {
+            if (s.id !== sessionId) return s;
+            return {
+                ...s,
+                messages: s.messages.map(m => m.id === msgId ? { ...m, ...updates } : m)
+            };
+        }));
+    };
 
-        // ── Clarification gate removed ──────────
-        // The agent is now autonomous and will detect format/language/outputType
-        // from the prompt itself.
-        setShowClarification(false);
-        // ─────────────────────────────────────────
+    const handleSearch = async (query: string = inputValue) => {
+        if (!query.trim()) return;
+        setAiSuggestions([]);
+        setInputValue('');
+        setShowFilters(false);
+        streamRef.current?.close();
+
+        let targetSessionId = currentSessionId;
+        
+        // Create a new session if we are in 'new' state
+        if (targetSessionId === 'new') {
+            targetSessionId = Date.now().toString();
+            setSessions(prev => [{
+                id: targetSessionId,
+                title: query.length > 30 ? query.substring(0, 30) + '...' : query,
+                messages: [],
+                createdAt: Date.now()
+            }, ...prev]);
+            setCurrentSessionId(targetSessionId);
+        }
+
+        const userMsgId = Date.now().toString() + '_user';
+        const agentMsgId = Date.now().toString() + '_agent';
+
+        // Add User Message
+        setSessions(prev => prev.map(s => {
+            if (s.id !== targetSessionId) return s;
+            return {
+                ...s,
+                messages: [...s.messages, { id: userMsgId, role: 'user', content: query }]
+            };
+        }));
+
+        // Add Agent Initial Message
+        setTimeout(() => {
+            setSessions(prev => prev.map(s => {
+                if (s.id !== targetSessionId) return s;
+                return {
+                    ...s,
+                    messages: [...s.messages, {
+                        id: agentMsgId,
+                        role: 'agent',
+                        content: '',
+                        status: 'researching',
+                        thought: 'Analyzing your prompt...'
+                    }]
+                };
+            }));
+        }, 100);
 
         try {
-            setSuggestions([]); // Clear suggestions on search
-            const data = await submitResearch(inputValue, format, language, outputType);
+            const data = await submitResearch(query, format, language, outputType);
+            const jobId = data.jobId;
+            updateAgentMessage(targetSessionId, agentMsgId, { jobId });
 
-            if (data?.status === 'clarification_needed') {
-                // Backend returned clarification (should not happen if frontend
-                // gate passed, but handle gracefully)
-                setShowClarification(true);
-                return;
-            }
-
-            setJob(data.jobId, inputValue);
-
-            // Open SSE — real-time agent status, no polling
-            const es = createJobStream(data.jobId);
+            // Open SSE
+            const es = createJobStream(jobId);
             streamRef.current = es;
 
             es.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'status') {
-                    setStatus(msg.status, msg.thought);
+                    updateAgentMessage(targetSessionId, agentMsgId, { status: msg.status, thought: msg.thought });
                 } else if (msg.type === 'completed') {
-                    setResults(msg.results);
-                    closeStream();
+                    updateAgentMessage(targetSessionId, agentMsgId, { status: 'completed', results: msg.results, thought: 'Task completed!' });
+                    es.close();
                 } else if (msg.type === 'failed') {
-                    setError(msg.error || 'Research failed');
-                    closeStream();
+                    updateAgentMessage(targetSessionId, agentMsgId, { status: 'failed', error: msg.error || 'Failed' });
+                    es.close();
                 }
             };
 
             es.onerror = () => {
-                setError('Connection to agent lost. Please try again.');
-                closeStream();
+                updateAgentMessage(targetSessionId, agentMsgId, { status: 'failed', error: 'Connection to agent lost. Please try again.' });
+                es.close();
             };
+
         } catch (err: any) {
-            setError(err.message || 'Failed to start research');
+             updateAgentMessage(targetSessionId, agentMsgId, { status: 'failed', error: err.message || 'Failed to submit.' });
         }
     };
 
-    return (
-        <div className="min-h-screen relative overflow-hidden flex flex-col items-center" suppressHydrationWarning>
-            <div className="absolute top-[-10%] right-[-10%] w-125 h-125 bg-brand-primary/10 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-125 h-125 bg-brand-secondary/10 rounded-full blur-[120px] pointer-events-none" />
+    // ── Render Helpers ────────────────────────────────────────────────────────
 
-            {/* Header */}
-            <header className="w-full max-w-6xl px-6 py-8 flex justify-between items-center z-10">
-                <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-lg brand-gradient flex items-center justify-center">
-                        <Play size={16} fill="white" className="ml-0.5" />
+    const renderAgentLoader = (status: string | undefined, thought: string | undefined) => {
+        let icon = <Loader2 size={16} className="animate-spin text-brand-primary" />;
+        if (status === 'completed') icon = <CheckCircle2 size={16} className="text-green-400" />;
+        if (status === 'failed') icon = <AlertCircle size={16} className="text-red-400" />;
+
+        return (
+            <div className="flex items-center space-x-3 text-sm text-gray-400 bg-gray-800/50 py-2 px-4 rounded-xl w-fit border border-white/5 animate-pulse">
+                {icon}
+                <span className="font-mono text-xs">{thought || `Agent status: ${status}...`}</span>
+            </div>
+        );
+    };
+
+    const renderResults = (results: any) => {
+        if (!results) return null;
+        
+        return (
+            <div className="space-y-6 mt-4 w-full">
+                {/* Summary Box */}
+                {results.summary && (
+                    <div className="bg-gray-800/80 border border-white/10 rounded-2xl p-6 text-gray-200 leading-relaxed shadow-xl">
+                        <div className="flex items-center space-x-2 text-brand-primary mb-3">
+                            <Sparkles size={18} />
+                            <h3 className="font-bold text-lg text-white">Executive Summary</h3>
+                        </div>
+                        <div className="prose prose-invert max-w-none text-sm text-gray-300">
+                            {results.summary.split('\n').map((para: string, i: number) => (
+                                <p key={i} className="mb-2">{para}</p>
+                            ))}
+                        </div>
                     </div>
-                    <span className="text-xl font-bold tracking-tight">AgentFlow AI</span>
-                </div>
-                {status !== 'idle' && (
-                    <button onClick={handleReset} className="text-sm text-gray-400 hover:text-white transition-colors">
-                        New Research
-                    </button>
                 )}
-            </header>
 
-            <main className="flex-1 w-full max-w-4xl px-4 flex flex-col items-center pt-16 z-10">
-                <AnimatePresence mode="wait">
+                {/* Sources Row */}
+                {results.rankedList && results.rankedList.length > 0 && (
+                    <div>
+                        <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">Top Sources</h4>
+                        <div className="flex overflow-x-auto pb-4 gap-4 snap-x no-scrollbar">
+                            {results.rankedList.map((item: any, i: number) => (
+                                <a
+                                    key={i}
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="snap-start min-w-[280px] max-w-[280px] bg-gray-800/50 hover:bg-gray-800 border border-white/5 hover:border-brand-primary/50 rounded-xl p-4 transition-all group flex flex-col h-full cursor-pointer shrink-0"
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded-md">Source {i+1}</span>
+                                        <ExternalLink size={14} className="text-gray-500 group-hover:text-brand-primary transition-colors" />
+                                    </div>
+                                    <h5 className="font-semibold text-white text-sm line-clamp-2 mb-2 group-hover:text-brand-primary">{item.title}</h5>
+                                    <p className="text-xs text-gray-400 line-clamp-3 mt-auto">{item.description}</p>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
-                    {/* ── IDLE: search form ──────────────────────────────────── */}
-                    {status === 'idle' && (
-                        <motion.div
-                            key="idle"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="text-center space-y-6 w-full"
-                        >
-                            <h1 className="text-6xl font-extrabold tracking-tight sm:text-7xl leading-tight">
-                                Research anything, <br />
-                                <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500">
-                                    at light speed.
-                                </span>
-                            </h1>
-                            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-                                3 specialised agents browse, scrape, and critique the internet
-                                to surface the highest quality information.
-                            </p>
+    return (
+        <div className="flex h-screen bg-[#0F1117] text-white font-sans overflow-hidden select-none">
+            
+            {/* ── Sidebar ──────────────────────────────────────────────────────── */}
+            <AnimatePresence>
+                {isSidebarOpen && (
+                    <motion.aside
+                        initial={{ x: -260 }}
+                        animate={{ x: 0 }}
+                        exit={{ x: -260 }}
+                        transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+                        className="w-[260px] bg-[#171923] border-r border-white/5 flex flex-col h-full flex-shrink-0 z-20 absolute md:relative"
+                    >
+                        <div className="p-4 flex items-center justify-between">
+                            <button
+                                onClick={createNewSession}
+                                className="flex-1 flex items-center space-x-2 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-4 py-2.5 rounded-xl transition-colors font-medium border border-brand-primary/20"
+                            >
+                                <Plus size={18} />
+                                <span>New Research</span>
+                            </button>
+                        </div>
 
-                            {/* ── Filter row ──────────────────────────────────── */}
-                            <div className="flex flex-wrap justify-center gap-3 pt-2">
-
-                                {/* Content type */}
-                                <FilterGroup label="Content Type" missing={showClarification && !format}>
-                                    {FORMAT_OPTIONS.map((opt) => (
-                                        <Pill
-                                            key={opt.value}
-                                            active={format === opt.value}
-                                            invalid={showClarification && !format}
-                                            onClick={() => { setFormat(opt.value); setShowClarification(false); }}
-                                        >
-                                            {opt.icon}{opt.label}
-                                        </Pill>
-                                    ))}
-                                </FilterGroup>
-
-                                {/* Language */}
-                                <FilterGroup label="Language" missing={showClarification && !language}>
-                                    {LANGUAGE_OPTIONS.map((opt) => (
-                                        <Pill
-                                            key={opt.value}
-                                            active={language === opt.value}
-                                            invalid={showClarification && !language}
-                                            onClick={() => { setLanguage(opt.value); setShowClarification(false); }}
-                                        >
-                                            {opt.label}
-                                        </Pill>
-                                    ))}
-                                </FilterGroup>
-
-                                {/* Output type */}
-                                <FilterGroup label="Output" missing={showClarification && !outputType}>
-                                    {OUTPUT_OPTIONS.map((opt) => (
-                                        <Pill
-                                            key={opt.value}
-                                            active={outputType === opt.value}
-                                            invalid={showClarification && !outputType}
-                                            onClick={() => { setOutputType(opt.value); setShowClarification(false); }}
-                                        >
-                                            {opt.icon}{opt.label}
-                                        </Pill>
-                                    ))}
-                                </FilterGroup>
-                            </div>
-
-                            {/* Clarification message */}
-                            <AnimatePresence>
-                                {showClarification && (
-                                    <motion.p
-                                        initial={{ opacity: 0, y: -6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                        className="text-sm text-red-400 font-medium"
-                                    >
-                                        ❓ Please select{' '}
-                                        {[
-                                            !format     && 'Content Type',
-                                            !language   && 'Language',
-                                            !outputType && 'Output type',
-                                        ]
-                                            .filter(Boolean)
-                                            .join(', ')}{' '}
-                                        before searching.
-                                    </motion.p>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Search bar */}
-                            <form onSubmit={handleSearch} className="relative mt-2 max-w-2xl mx-auto">
-                                <div className="relative group">
-                                    <div className="absolute inset-0 bg-brand-primary/20 rounded-2xl blur-xl transition-all group-hover:bg-brand-primary/30" />
-                                    <input
-                                        type="text"
-                                        value={inputValue}
-                                        onChange={(e) => handleInputChange(e.target.value)}
-                                        placeholder="What do you want to research today?"
-                                        className="relative w-full glass-card px-6 py-5 text-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all bg-gray-900/50"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="absolute right-3 top-3 bottom-3 px-6 brand-gradient rounded-xl font-semibold flex items-center space-x-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-brand-primary/20"
-                                    >
-                                        <Search size={18} />
-                                        <span>Start</span>
-                                    </button>
+                        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+                            {sessions.length === 0 ? (
+                                <div className="text-center text-gray-500 text-sm mt-10 px-4">
+                                    No history yet. Start researching!
                                 </div>
-
-                                {/* Suggestions Dropdown */}
-                                <AnimatePresence>
-                                    {Array.isArray(suggestions) && suggestions.length > 0 && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            className="mt-2 glass-card overflow-hidden shadow-2xl border-white/10"
+                            ) : (
+                                sessions.map(s => (
+                                    <div
+                                        key={s.id}
+                                        onClick={() => setCurrentSessionId(s.id)}
+                                        className={`group flex items-center justify-between px-3 py-3 rounded-lg cursor-pointer transition-colors ${
+                                            currentSessionId === s.id ? 'bg-gray-800 text-white' : 'hover:bg-gray-800/50 text-gray-400'
+                                        }`}
+                                    >
+                                        <div className="flex items-center space-x-3 overflow-hidden">
+                                            <MessageSquare size={16} className="flex-shrink-0" />
+                                            <span className="text-sm truncate w-36">{s.title}</span>
+                                        </div>
+                                        <button 
+                                            onClick={(e) => deleteSession(e, s.id)}
+                                            className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            {suggestions.map((suggestion, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => {
-                                                        setInputValue(suggestion);
-                                                        setSuggestions([]);
-                                                    }}
-                                                    className="w-full px-6 py-3 text-left text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-b border-white/5 last:border-0 flex items-center gap-3"
-                                                >
-                                                    <Search size={14} className="text-brand-primary" />
-                                                    {suggestion}
-                                                </button>
-                                            ))}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </form>
-                        </motion.div>
-                    )}
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
 
-                    {/* ── PROCESSING / RESULTS ───────────────────────────────── */}
-                    {status !== 'idle' && (
-                        <motion.div
-                            key="processing"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="w-full space-y-10"
-                        >
-                            <div className="text-center">
-                                <span className="text-xs font-bold text-brand-primary uppercase tracking-widest">
-                                    Ongoing Research
-                                </span>
-                                <h2 className="text-3xl font-bold mt-2">{topic}</h2>
-                                {thought && (
-                                    <p className="text-sm text-brand-primary mt-3 italic max-w-2xl mx-auto">
-                                        " {thought} "
-                                    </p>
-                                )}
-                                {(format || language || outputType) && (
-                                    <p className="text-xs text-gray-500 mt-2 capitalize font-mono">
-                                        {format || 'Auto'} · {language || 'Auto'} · {outputType || 'Auto'}
-                                    </p>
-                                )}
+                        {/* Branding Bottom */}
+                        <div className="p-4 border-t border-white/5 flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-lg brand-gradient flex items-center justify-center">
+                                <Play size={14} fill="white" className="ml-0.5" />
                             </div>
-
-                            {/* Agent progress cards */}
-                            <div className="grid grid-cols-3 gap-4">
-                                <StatusCard
-                                    label="Researcher"
-                                    active={['pending', 'researching'].includes(status)}
-                                    done={!['idle', 'pending', 'researching'].includes(status)}
-                                />
-                                <StatusCard
-                                    label="Crawler"
-                                    active={status === 'crawling'}
-                                    done={['critiquing', 'completed'].includes(status)}
-                                />
-                                <StatusCard
-                                    label="Critic"
-                                    active={status === 'critiquing'}
-                                    done={status === 'completed'}
-                                />
+                            <div>
+                                <h1 className="font-bold text-sm">AgentFlow AI</h1>
+                                <p className="text-xs text-gray-500">Autonomous Squad</p>
                             </div>
+                        </div>
+                    </motion.aside>
+                )}
+            </AnimatePresence>
 
-                            {/* Error */}
-                            {status === 'failed' && (
-                                <div className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5 flex items-center space-x-4 text-red-400">
-                                    <AlertCircle size={24} />
-                                    <div>
-                                        <p className="font-bold">Research failed</p>
-                                        <p className="text-sm opacity-80">
-                                            {errorMessage || '❌ No exact results found. Please refine your query.'}
-                                        </p>
+            {/* ── Main Chat Area ───────────────────────────────────────────────── */}
+            <main className="flex-1 flex flex-col h-full relative" suppressHydrationWarning>
+                
+                {/* Topbar for Mobile Toggle */}
+                <div className="h-14 flex items-center px-4 border-b border-white/5 md:hidden shrink-0">
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-400 hover:text-white rounded-md">
+                        <Menu size={24} />
+                    </button>
+                    <span className="ml-2 font-bold tracking-tight">AgentFlow AI</span>
+                </div>
+
+                {/* Chat Feed */}
+                <div className="flex-1 overflow-y-auto w-full">
+                    {messages.length === 0 ? (
+                        // Empty State / Welcome Screen
+                        <div className="h-full flex flex-col items-center justify-center px-6 max-w-3xl mx-auto text-center mt-[-5vh]">
+                            <div className="w-16 h-16 rounded-2xl brand-gradient flex items-center justify-center mb-6 shadow-2xl shadow-brand-primary/20">
+                                <Sparkles size={32} className="text-white" />
+                            </div>
+                            <h2 className="text-3xl font-bold mb-3">How can I help you research today?</h2>
+                            <p className="text-gray-400 text-sm mb-12">Ask anything, and our autonomous multi-agent squad will surf the web, scrape sources, and compile a final summary for you.</p>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
+                                {SUGGESTIONS_PLACEHOLDER.map((sug, i) => (
+                                    <button 
+                                        key={i} 
+                                        onClick={() => handleSearch(sug)}
+                                        className="text-left px-4 py-3 bg-gray-800/50 hover:bg-gray-800 border border-white/5 hover:border-brand-primary/40 rounded-xl transition-all text-sm text-gray-300"
+                                    >
+                                        <Search size={14} className="inline mr-2 text-brand-primary opacity-70" />
+                                        {sug}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        // Chat List
+                        <div className="w-full relative pb-6 pb-32">
+                            {messages.map((msg) => (
+                                <div key={msg.id} className={`w-full py-8 px-4 ${msg.role === 'agent' ? 'bg-[#13151A]' : ''}`}>
+                                    <div className="max-w-3xl mx-auto flex gap-4 md:gap-6">
+                                        {/* Avatar */}
+                                        <div className="flex-shrink-0 mt-1">
+                                            {msg.role === 'user' ? (
+                                                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-bold text-xs">U</div>
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full brand-gradient flex items-center justify-center shadow-lg shadow-brand-primary/20">
+                                                    <Play size={12} fill="white" className="ml-0.5" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 overflow-hidden">
+                                            {msg.role === 'user' ? (
+                                                <div className="text-gray-100 text-lg">{msg.content}</div>
+                                            ) : (
+                                                <div className="flex flex-col space-y-3">
+                                                    {msg.status && msg.status !== 'completed' && renderAgentLoader(msg.status, msg.thought)}
+                                                    
+                                                    {msg.error && (
+                                                        <div className="text-red-400 bg-red-400/10 p-4 rounded-xl text-sm border border-red-500/20">
+                                                            ⚠️ {msg.error}
+                                                        </div>
+                                                    )}
+
+                                                    {msg.status === 'completed' && renderResults(msg.results)}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
+                </div>
 
-                            {/* ── Results: conditional on outputType ─────────── */}
-                            {results && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
+                {/* Input Area (Fixed Bottom) */}
+                <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-[#0F1117] via-[#0F1117] to-transparent pt-10 pb-6 px-4">
+                    <div className="max-w-3xl mx-auto relative">
+                        
+                        {/* Auto-suggest dropdown */}
+                        <AnimatePresence>
+                            {aiSuggestions.length > 0 && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-8 pb-20"
+                                    exit={{ opacity: 0, y: 10 }}
+                                    className="absolute bottom-full left-0 w-full mb-3 bg-gray-800 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 overflow-y-auto max-h-60"
                                 >
-                                    {outputType === 'summary'
-                                        ? <SummaryView results={results} />
-                                        : <ListView    results={results} />
-                                    }
+                                    {aiSuggestions.map((sug, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                setInputValue(sug);
+                                                setAiSuggestions([]);
+                                            }}
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-white/5 last:border-0 flex items-center gap-3"
+                                        >
+                                            <Search size={14} className="text-brand-primary shrink-0"/>
+                                            <span className="truncate">{sug}</span>
+                                        </button>
+                                    ))}
                                 </motion.div>
                             )}
-                        </motion.div>
-                    )}
+                        </AnimatePresence>
 
-                </AnimatePresence>
+                        {/* Filters Dropdown (Toggle) */}
+                        <AnimatePresence>
+                            {showFilters && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden bg-gray-900 border border-white/10 rounded-2xl mb-3 shadow-xl p-4 z-40 relative"
+                                >
+                                    <div className="flex flex-wrap gap-x-6 gap-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Format</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {FORMAT_OPTIONS.map(opt => (
+                                                    <button key={opt.value} onClick={() => setFormat(format === opt.value ? null : opt.value as any)}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${format === opt.value ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                                                        {opt.icon}{opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Language</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {LANGUAGE_OPTIONS.map(opt => (
+                                                    <button key={opt.value} onClick={() => setLanguage(language === opt.value ? null : opt.value)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${language === opt.value ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Output</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                <button onClick={() => setOutputType(outputType === 'summary' ? null : 'summary')}
+                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${outputType === 'summary' ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                                                    <AlignLeft size={13}/> Summary
+                                                </button>
+                                                <button onClick={() => setOutputType(outputType === 'list' ? null : 'list')}
+                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${outputType === 'list' ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                                                    <List size={13}/> List
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Search Input Box */}
+                        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="relative bg-gray-800 rounded-3xl border border-white/10 shadow-2xl flex flex-col focus-within:ring-2 focus-within:ring-brand-primary/50 transition-all z-40">
+                            
+                            <textarea
+                                value={inputValue}
+                                onChange={(e) => handleInputChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSearch();
+                                    }
+                                }}
+                                placeholder="Message AgentFlow AI..."
+                                className="w-full bg-transparent px-6 py-4 text-sm text-white focus:outline-none resize-none no-scrollbar h-[56px] max-h-40"
+                                rows={1}
+                            />
+                            
+                            <div className="flex justify-between items-center px-4 pb-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`flex items-center space-x-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors ${showFilters || format || language || outputType ? 'text-brand-primary bg-brand-primary/10' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+                                >
+                                    <Sparkles size={14} />
+                                    <span>Filters</span>
+                                    <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={!inputValue.trim()}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${inputValue.trim() ? 'bg-white text-black hover:bg-gray-200 shadow-md transform hover:scale-105' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                >
+                                    <Send size={14} />
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div className="text-center mt-3 text-[10px] text-gray-500">
+                            AgentFlow AI can make mistakes. Consider verifying important information.
+                        </div>
+                    </div>
+                </div>
+
             </main>
-        </div>
-    );
-}
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function FilterGroup({
-    label,
-    missing,
-    children,
-}: {
-    label:    string;
-    missing?: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="flex flex-col items-center gap-1">
-            <span className={`text-[10px] font-bold uppercase tracking-widest ${missing ? 'text-red-400' : 'text-gray-600'}`}>
-                {label}
-            </span>
-            <div className={`flex items-center gap-1 p-1 rounded-xl border transition-colors
-                ${missing ? 'bg-red-500/5 border-red-500/30' : 'bg-gray-900/60 border-white/5'}`}>
-                {children}
-            </div>
-        </div>
-    );
-}
-
-/** List view — top 5 ranked cards with title, link, description */
-function ListView({ results }: { results: any }) {
-    const top5 = (results.rankedList || []).slice(0, 5);
-
-    return (
-        <div className="space-y-4">
-            <SummaryBar summary={results.summary} />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">
-                Top {top5.length} Results
-            </h3>
-            <div className="grid gap-3">
-                {top5.map((item: any, idx: number) => (
-                    <a
-                        key={idx}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="glass-card p-5 flex flex-col gap-2 group hover:border-brand-primary/50 transition-all"
-                    >
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">
-                                    #{item.rank}
-                                </span>
-                                <span className="text-xs text-gray-500 font-mono uppercase">
-                                    {item.sourceType}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-gray-600">
-                                <span className="text-xs">Score: {item.score}</span>
-                                <ExternalLink size={12} className="group-hover:text-brand-primary transition-colors" />
-                            </div>
-                        </div>
-                        <h4 className="font-bold text-base group-hover:text-brand-primary transition-colors leading-snug">
-                            {item.title}
-                        </h4>
-                        <p className="text-gray-400 text-sm line-clamp-2">{item.description}</p>
-                        {item.reason && (
-                            <p className="text-xs text-gray-600">
-                                <span className="text-brand-primary font-medium">Why: </span>
-                                {item.reason}
-                            </p>
-                        )}
-                    </a>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-/** Summary view — clean explanation + key points bullets */
-function SummaryView({ results }: { results: any }) {
-    const keyPoints: string[] = results.keyPoints || [];
-    const bestResult          = results.bestResult;
-
-    return (
-        <div className="space-y-6">
-            {/* Main summary */}
-            <div className="glass-card p-8">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-                        AI Summary
-                    </span>
-                </div>
-                <p className="text-xl leading-relaxed text-gray-100 italic font-serif">
-                    "{results.summary}"
-                </p>
-            </div>
-
-            {/* Key points */}
-            {keyPoints.length > 0 && (
-                <div className="glass-card p-6 space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">
-                        Key Insights
-                    </h3>
-                    <ul className="space-y-2">
-                        {keyPoints.map((point, i) => (
-                            <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
-                                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" />
-                                {point}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            {/* Best result highlight */}
-            {bestResult && (
-                <div>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
-                        Best Source
-                    </h3>
-                    <a
-                        href={bestResult.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="glass-card p-6 flex flex-col gap-2 group hover:border-brand-primary/50 transition-all"
-                    >
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-mono text-brand-primary uppercase bg-brand-primary/10 px-2 py-0.5 rounded">
-                                {bestResult.sourceType}
-                            </span>
-                            <ExternalLink size={14} className="text-gray-600 group-hover:text-brand-primary transition-colors" />
-                        </div>
-                        <h4 className="font-bold text-lg group-hover:text-brand-primary transition-colors">
-                            {bestResult.title}
-                        </h4>
-                        <p className="text-sm text-gray-400">{bestResult.description}</p>
-                    </a>
-                </div>
-            )}
-        </div>
-    );
-}
-
-/** Compact one-line summary bar shown above the list view */
-function SummaryBar({ summary }: { summary: string }) {
-    if (!summary) return null;
-    return (
-        <div className="px-4 py-3 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-sm text-gray-300 italic">
-            {summary}
-        </div>
-    );
-}
-
-function StatusCard({ label, active, done }: { label: string; active: boolean; done: boolean }) {
-    return (
-        <div className={`p-5 rounded-2xl glass-card transition-all
-            ${active ? 'ring-2 ring-brand-primary bg-brand-primary/5' : ''}
-            ${done   ? 'ring-1 ring-green-500/20 bg-green-500/5'      : ''}`}
-        >
-            <div className="flex items-center justify-between mb-3">
-                <span className={`text-xs font-bold tracking-widest uppercase
-                    ${active ? 'text-brand-primary' : done ? 'text-green-500' : 'text-gray-600'}`}>
-                    {label}
-                </span>
-                {active && <Loader2     size={15} className="animate-spin text-brand-primary" />}
-                {done   && <CheckCircle2 size={15} className="text-green-500" />}
-            </div>
-            <div className="h-1 w-full rounded-full bg-gray-800 overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: active ? '65%' : done ? '100%' : '0%' }}
-                    transition={{ duration: active ? 1.2 : 0.3, ease: 'easeInOut' }}
-                    className={`h-full ${done ? 'bg-green-500' : 'bg-brand-primary'}`}
-                />
-            </div>
         </div>
     );
 }
