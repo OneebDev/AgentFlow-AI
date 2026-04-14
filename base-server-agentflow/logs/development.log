@@ -20851,3 +20851,308 @@
         "SERVER_URL": "http://localhost:3000"
     }
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:01.488Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.308Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.442Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.446Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.449Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.450Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.451Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:48:02.452Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:32.326Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:35.263Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Provide detailed insights on the impact of climate change on agricultural productivity in sub-Saharan Africa.",
+            "Request a comprehensive analysis of the correlation between social media usage and mental health trends among teenagers in the United States.",
+            "Seek expert opinions on the future of renewable energy technologies and their potential to meet global energy demands by 2050."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:37.383Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "provide me a comprehensive analysis of the impact of social media on mental health among teenagers",
+            "give me a detailed comparison of renewable energy sources and their effectiveness in reducing carbon emissions",
+            "offer me an in-depth study on the historical influences of colonialism on contemporary political systems in Africa"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:41.082Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "provide a detailed lecture outline on the impact of climate change on global biodiversity",
+            "design an engaging lecture presentation on the advancements in artificial intelligence and their implications for future job markets",
+            "create a comprehensive lecture script discussing the historical significance of the Renaissance in shaping modern Western thought"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:47.229Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20quantum%20computing%20b"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "An Introduction to Quantum Computing: Understanding the Basics and Its Implications for Future Technology",
+            "Exploring Quantum Computing Algorithms: A Deep Dive into Shor's and Grover's Algorithms",
+            "The Role of Quantum Computing in Cryptography: How Quantum Mechanics Transforms Data Security"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:49.354Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20quantum%20computing%20but%20no%20vo"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Explain the fundamental principles of quantum computing without visual aids or diagrams.",
+            "Provide a detailed overview of quantum computing concepts, focusing solely on auditory explanations without any visual components.",
+            "Discuss key algorithms in quantum computing, emphasizing theoretical understanding through spoken word only, devoid of visual presentations."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:50.364Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20quantum%20computing%20but%20no%20v"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "provide a comprehensive lecture on quantum computing excluding the use of the letter 'v'",
+            "deliver an in-depth presentation on quantum computing while omitting any words containing the letter 'v'",
+            "create a detailed analysis of quantum computing principles without utilizing the letter 'v' in the text"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:51.465Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20lecture%20of%20quantum%20computing%20but%20no%20videos"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "An In-Depth Lecture on Quantum Computing Principles and Algorithms Without Visual Aids",
+            "Exploring Quantum Computing Fundamentals: A Comprehensive Text-Based Lecture",
+            "An Audio-Based Lecture Series on Quantum Computing Concepts and Applications, Excluding Video Content"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.519Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user is looking for educational material on quantum computing but has specified that videos are not desired. Therefore, the best format is 'articles' since they can provide in-depth and structured information. A summary of the collected information would be the most helpful for a lecture-style understanding.",
+        "directAnswer": "",
+        "queries": [
+            "Quantum computing introduction articles",
+            "Basics of quantum computing",
+            "Lecture notes on quantum computing"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.570Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de2a94955e889a774c3d47",
+            "status": "The user is looking for educational material on quantum computing but has specified that videos are not desired. Therefore, the best format is 'articles' since they can provide in-depth and structured information. A summary of the collected information would be the most helpful for a lecture-style understanding.",
+            "message": "The user is looking for educational material on quantum computing but has specified that videos are not desired. Therefore, the best format is 'articles' since they can provide in-depth and structured information. A summary of the collected information would be the most helpful for a lecture-style understanding."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.582Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de2a94955e889a774c3d47",
+        "format": "articles",
+        "sources": [
+            "tavily"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:52:52.599Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:52:52.600Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "Quantum computing introduction articles",
+            "Basics of quantum computing",
+            "Lecture notes on quantum computing"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:52:52.601Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.601Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de2a94955e889a774c3d47",
+        "totalResults": 0
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.621Z",
+    "message": "Critic starting evaluation for job: 69de2a94955e889a774c3d47",
+    "meta": {
+        "rawCount": 0
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.658Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "9"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:52:52.682Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "8"
+    }
+}

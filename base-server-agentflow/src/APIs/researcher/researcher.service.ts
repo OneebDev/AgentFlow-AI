@@ -20,7 +20,7 @@ function resolveFormatConfig(format: TResearchFormat): {
     switch (format) {
         case 'articles':
             return {
-                sources:      ['tavily'], // Removed the slow 'scraper' deep dive for maximum speed
+                sources:      ['tavily', 'google'], // Added google as fallback if tavily is empty or has no key
                 outputFormat: 'article',
                 intent:       'learning',
             };
@@ -160,7 +160,7 @@ export class ResearcherService {
                 messages: [
                     { 
                         role: 'system', 
-                        content: 'You are a search query optimizer. Given a partial or full prompt, generate 3 highly specific and improved versions of the research topic. Return ONLY a JSON array of strings.' 
+                        content: 'You are a deep-research query architect. Given a partial or full topic, generate 5 diverse, highly specific, and distinct research angles or improved queries. Avoid generic repeats. Return ONLY a JSON array of strings.' 
                     },
                     { role: 'user', content: `Prompt: "${prompt}"` }
                 ],
