@@ -137,10 +137,16 @@ export default function Home() {
         }
 
         suggestTimeoutRef.current = setTimeout(async () => {
-            setIsTyping(true);
-            const res = await getSuggestions(val);
-            setAiSuggestions(res);
-            setIsTyping(false);
+            try {
+                setIsTyping(true);
+                const res = await getSuggestions(val);
+                setAiSuggestions(res);
+            } catch (err) {
+                console.error("Suggestion fetch failed", err);
+                setAiSuggestions([]);
+            } finally {
+                setIsTyping(false);
+            }
         }, 500);
     };
 
