@@ -3,8 +3,8 @@ import * as cheerio from 'cheerio';
 import logger from '../../../handlers/logger';
 import cache from '../../../utils/cache';
 
-const SCRAPER_TIMEOUT = parseInt(process.env.SCRAPER_TIMEOUT_MS || '10000', 10);
-const MAX_RETRIES = parseInt(process.env.SCRAPER_MAX_RETRIES || '3', 10);
+const SCRAPER_TIMEOUT = parseInt(process.env.SCRAPER_TIMEOUT_MS || '5000', 10);
+const MAX_RETRIES = parseInt(process.env.SCRAPER_MAX_RETRIES || '1', 10);
 const CACHE_TTL = 3600;
 
 const DEFAULT_HEADERS = {

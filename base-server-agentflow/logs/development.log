@@ -18517,3 +18517,544 @@
         ]
     }
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:38.836Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.721Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.908Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.915Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.919Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.921Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.922Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:39.922Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:52.175Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=quantum%20energy"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "The role of quantum entanglement in enhancing energy efficiency in quantum computing systems",
+            "Exploring quantum energy states in renewable energy technologies for sustainable power generation",
+            "Potential applications of quantum energy harvesting in nanoscale electronic devices"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:53.848Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=quantum%20ener"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Exploring the Potential of Quantum Energy Harvesting for Sustainable Technology",
+            "The Role of Quantum Energy Levels in Developing Next-Generation Quantum Computing",
+            "Analyzing Quantum Energy Fluctuations in Superconducting Materials"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:59.024Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The prompt is in English and is academic in nature, focusing on the exploration of a specific technological concept. Articles would be the best format to provide in-depth analysis and research findings on quantum energy harvesting. A summary format would be ideal to concisely present the complex and broad ideas related to sustainable technology.",
+        "queries": [
+            "Quantum energy harvesting technologies",
+            "Sustainable applications of quantum energy",
+            "Recent advances in quantum energy harvesting"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:59.090Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de1e6be0d0dc8427a46402",
+            "status": "The prompt is in English and is academic in nature, focusing on the exploration of a specific technological concept. Articles would be the best format to provide in-depth analysis and research findings on quantum energy harvesting. A summary format would be ideal to concisely present the complex and broad ideas related to sustainable technology.",
+            "message": "The prompt is in English and is academic in nature, focusing on the exploration of a specific technological concept. Articles would be the best format to provide in-depth analysis and research findings on quantum energy harvesting. A summary format would be ideal to concisely present the complex and broad ideas related to sustainable technology."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:59.102Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de1e6be0d0dc8427a46402",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "scraper"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:00:59.118Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:00:59.119Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:00:59.120Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "Quantum energy harvesting technologies",
+            "Sustainable applications of quantum energy",
+            "Recent advances in quantum energy harvesting"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:00:59.122Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:00:59.153Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:01.219Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The prompt indicates a research-oriented exploration into the potential of quantum energy harvesting within the context of sustainability and technology. Therefore, academic and informative sources such as articles would be best suited to provide in-depth analysis and current developments in this field. The output format should allow the user to see multiple perspectives and developments on the topic.",
+        "queries": [
+            "Current advancements in quantum energy harvesting",
+            "Sustainable technology applications of quantum energy harvesting",
+            "Potential impact of quantum energy harvesting on renewable energy systems"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "list"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:01.247Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de1e6de0d0dc8427a4640f",
+            "status": "The prompt indicates a research-oriented exploration into the potential of quantum energy harvesting within the context of sustainability and technology. Therefore, academic and informative sources such as articles would be best suited to provide in-depth analysis and current developments in this field. The output format should allow the user to see multiple perspectives and developments on the topic.",
+            "message": "The prompt indicates a research-oriented exploration into the potential of quantum energy harvesting within the context of sustainability and technology. Therefore, academic and informative sources such as articles would be best suited to provide in-depth analysis and current developments in this field. The output format should allow the user to see multiple perspectives and developments on the topic."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:01.253Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de1e6de0d0dc8427a4640f",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "scraper"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:01.271Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:01.272Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:01.273Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "Current advancements in quantum energy harvesting",
+            "Sustainable technology applications of quantum energy harvesting",
+            "Potential impact of quantum energy harvesting on renewable energy systems"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:01.274Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:02.470Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Current advancements in quantum energy harvesting",
+        "count": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:02.897Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Quantum energy harvesting technologies",
+        "count": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:03.674Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Sustainable technology applications of quantum energy harvesting",
+        "count": 3
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:04.124Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://medium.com/@timventura/zero-point-energy-harvesting-and-casimir-effect-spheres-1f629592c377",
+        "attempt": 1,
+        "err": "Request failed with status code 403"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:04.168Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://medium.com/@timventura/zero-point-energy-harvesting-and-casimir-effect-spheres-1f629592c377",
+        "attempt": 2,
+        "err": "Request failed with status code 403"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:04.288Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "Sustainable applications of quantum energy",
+        "count": 3
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:14.554Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 1,
+        "err": "getaddrinfo EAI_AGAIN www.mckinsey.com"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:16.109Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 2,
+        "err": "getaddrinfo EAI_AGAIN www.mckinsey.com"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:16.874Z",
+    "message": "Scraper cache hit",
+    "meta": {
+        "url": "https://www.isct.ac.jp/en/news/asj3s0yop9ce"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:27.849Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.osti.gov/servlets/purl/1818947",
+        "attempt": 1,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:31.146Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 3,
+        "err": "timeout of 13424.97545301269ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:31.906Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 1,
+        "err": "timeout of 13451.484060271032ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:42.861Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.osti.gov/servlets/purl/1818947",
+        "attempt": 2,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:46.940Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 2,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:01:57.868Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.osti.gov/servlets/purl/1818947",
+        "attempt": 3,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:57.928Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de1e6be0d0dc8427a46402",
+        "totalResults": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:57.992Z",
+    "message": "Critic starting evaluation for job: 69de1e6be0d0dc8427a46402",
+    "meta": {
+        "rawCount": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:58.027Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de1e6be0d0dc8427a46402",
+        "after": 4,
+        "before": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:01:58.039Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "3"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:02:01.959Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/tech-forward/how-quantum-technologies-could-rebalance-the-sustainability-equation",
+        "attempt": 3,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:02.013Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de1e6de0d0dc8427a4640f",
+        "totalResults": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:02.066Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "4"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:02.069Z",
+    "message": "Critic starting evaluation for job: 69de1e6de0d0dc8427a4640f",
+    "meta": {
+        "rawCount": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:02.079Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de1e6de0d0dc8427a4640f",
+        "after": 4,
+        "before": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:16.973Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:16.986Z",
+    "message": "Critic: evaluation completed for job: 69de1e6be0d0dc8427a46402",
+    "meta": {}
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T11:02:16.997Z",
+    "message": "PubSub subscriber error",
+    "meta": {
+        "err": {
+            "name": "Error",
+            "message": "write ECONNABORTED",
+            "trace": "Error: write ECONNABORTED\n    at afterWriteDispatched (node:internal/stream_base_commons:159:15)\n    at writeGeneric (node:internal/stream_base_commons:150:3)\n    at Socket._writeGeneric (node:net:966:11)\n    at Socket._write (node:net:978:8)\n    at writeOrBuffer (node:internal/streams/writable:572:12)\n    at _write (node:internal/streams/writable:501:10)\n    at Socket.Writable.write (node:internal/streams/writable:510:10)\n    at EventEmitter.sendCommand (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\ioredis\\built\\Redis.js:406:29)\n    at EventEmitter.quit (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\ioredis\\built\\utils\\Commander.js:90:25)\n    at D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\src\\utils\\pubsub.ts:72:13"
+        },
+        "jobId": "69de1e6be0d0dc8427a46402"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:17.033Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "3"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:17.541Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:17.550Z",
+    "message": "Critic: evaluation completed for job: 69de1e6de0d0dc8427a4640f",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:02:17.552Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "4"
+    }
+}
