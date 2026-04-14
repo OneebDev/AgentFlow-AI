@@ -5,6 +5,7 @@ import { createQueue } from '../../utils/queue';
 import { publishJobEvent } from '../../utils/pubsub';
 import { IResearchRequest, IResearchResponse, TResearchFormat } from './types';
 import { planResearch } from './processors/planner';
+import cache from '../../utils/cache';
 
 const crawlQueue = createQueue(EQueueName.CRAWL);
 
@@ -131,9 +132,14 @@ export class ResearcherService {
     }
 
     async suggest(prompt: string): Promise<string[]> {
-        if (!prompt || prompt.length < 3) return [];
+        const promptTrimmed = prompt?.trim();
+        if (!promptTrimmed || promptTrimmed.length < 3) return [];
         
         try {
+            const cacheKey = cache.buildKey('suggest', Buffer.from(promptTrimmed.toLowerCase()).toString('base64'));
+            const cached = await cache.get<string[]>(cacheKey);
+            if (cached) return cached;
+
             const openai = new (require('openai'))({ apiKey: process.env.OPENAI_API_KEY });
             const response = await openai.chat.completions.create({
                 model: process.env.OPENAI_MODEL || 'gpt-4o',
@@ -159,7 +165,10 @@ export class ResearcherService {
                 if (Array.isArray(firstVal)) results = firstVal as string[];
                 else results = Object.values(parsed).filter(v => typeof v === 'string') as string[];
             }
-            return results.slice(0, 3); // Return max 3 elements
+            
+            const finalResults = results.slice(0, 3);
+            await cache.set(cacheKey, finalResults, 3600 * 24); // Cache for 24 hours
+            return finalResults;
         } catch (err) {
             return [];
         }
