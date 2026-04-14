@@ -20,7 +20,7 @@ function resolveFormatConfig(format: TResearchFormat): {
     switch (format) {
         case 'articles':
             return {
-                sources:      ['tavily', 'scraper'],
+                sources:      ['tavily'], // Removed the slow 'scraper' deep dive for maximum speed
                 outputFormat: 'article',
                 intent:       'learning',
             };
@@ -88,7 +88,21 @@ export class ResearcherService {
             thought: plan.thought 
         });
 
-        // 4. Enqueue in BullMQ with strategic queries
+        if (plan.directAnswer) {
+            // FAST-TRACK: Instantly return Chatbot-style answer!
+            await jobRepo.updateJobStatus(jobId, EJobStatus.COMPLETED);
+            const finalResult = await finalRepo.createFinalResult(jobId, {
+                summary: plan.directAnswer,
+                rankedList: [],
+                bestResult: null
+            });
+            setTimeout(() => {
+                publishJobEvent(jobId, { type: 'completed', results: finalResult });
+            }, 500); // Small delay to let UI attach SSE
+            return { jobId, status: 'completed' as any, message: 'Direct answer' };
+        }
+
+        // 4. Enqueue in BullMQ with strategic queries for deep web research
         await crawlQueue.add(`crawl:${jobId}`, {
             jobId,
             query: data.topic,
@@ -140,9 +154,9 @@ export class ResearcherService {
             const cached = await cache.get<string[]>(cacheKey);
             if (cached) return cached;
 
-            const openai = new (require('openai'))({ apiKey: process.env.OPENAI_API_KEY });
+            const openai = new (require('openai'))({ apiKey: process.env.OPENAI_API_KEY, timeout: 3000 });
             const response = await openai.chat.completions.create({
-                model: process.env.OPENAI_MODEL || 'gpt-4o',
+                model: 'gpt-4o-mini', // Used mini model for lightning-fast keystroke suggestions
                 messages: [
                     { 
                         role: 'system', 

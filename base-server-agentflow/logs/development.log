@@ -19122,3 +19122,1680 @@
     "message": "Queue initialized: critic-queue",
     "meta": {}
 }
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.882Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.893Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.899Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.901Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.902Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:09:29.903Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:28.946Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:30.355Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=What%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Invalid input"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:33.155Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=What%20is%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What is the role of artificial intelligence in enhancing predictive analytics for climate change modeling?,",
+            "How does blockchain technology transform supply chain management in the pharmaceutical industry?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:36.576Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=What%20is%20th"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What is the impact of climate change on global agricultural productivity?",
+            "What's the influence of social media algorithms on public opinion formation?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:43.906Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The prompt is requesting in-depth information about the impact of climate change on global agriculture. Articles would provide comprehensive and detailed analysis with supporting data. As the user is looking for detailed insights rather than quick information, a summary format is appropriate.",
+        "queries": [
+            "impact of climate change on agriculture productivity 2023",
+            "global agricultural output and climate change effects",
+            "climate change economic impact on farming"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:43.952Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de21df63f0872ea0d1e2fe",
+            "status": "The prompt is requesting in-depth information about the impact of climate change on global agriculture. Articles would provide comprehensive and detailed analysis with supporting data. As the user is looking for detailed insights rather than quick information, a summary format is appropriate.",
+            "message": "The prompt is requesting in-depth information about the impact of climate change on global agriculture. Articles would provide comprehensive and detailed analysis with supporting data. As the user is looking for detailed insights rather than quick information, a summary format is appropriate."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:43.959Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de21df63f0872ea0d1e2fe",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "scraper"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:43.973Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:43.973Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:43.974Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "impact of climate change on agriculture productivity 2023",
+            "global agricultural output and climate change effects",
+            "climate change economic impact on farming"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:43.975Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:46.101Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "impact of climate change on agriculture productivity 2023",
+        "count": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:47.533Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "global agricultural output and climate change effects",
+        "count": 3
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:47.993Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.sciencedirect.com/science/article/pii/S0378377425008285",
+        "attempt": 1,
+        "err": "Request failed with status code 403"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:48.097Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.sciencedirect.com/science/article/pii/S0378377425008285",
+        "attempt": 2,
+        "err": "Request failed with status code 403"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:15:48.177Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.sciencedirect.com/science/article/pii/S0378377425008285",
+        "attempt": 3,
+        "err": "Request failed with status code 403"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:15:48.987Z",
+    "message": "Scraper cache hit",
+    "meta": {
+        "url": "https://sustainability.stanford.edu/news/climate-change-cuts-global-crop-yields-even-when-farmers-adapt"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:16:04.012Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.usda.gov/about-usda/general-information/priorities/climate-solutions/climate-change-global-food-security-and-us-food-system",
+        "attempt": 1,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:16:19.037Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.usda.gov/about-usda/general-information/priorities/climate-solutions/climate-change-global-food-security-and-us-food-system",
+        "attempt": 2,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:16:34.049Z",
+    "message": "Scrape attempt failed",
+    "meta": {
+        "url": "https://www.usda.gov/about-usda/general-information/priorities/climate-solutions/climate-change-global-food-security-and-us-food-system",
+        "attempt": 3,
+        "err": "timeout of 15000ms exceeded"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:34.067Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de21df63f0872ea0d1e2fe",
+        "totalResults": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:34.076Z",
+    "message": "Critic starting evaluation for job: 69de21df63f0872ea0d1e2fe",
+    "meta": {
+        "rawCount": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:34.082Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de21df63f0872ea0d1e2fe",
+        "after": 3,
+        "before": 4
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:34.118Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "5"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:45.573Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:45.581Z",
+    "message": "Critic: evaluation completed for job: 69de21df63f0872ea0d1e2fe",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:16:45.625Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "5"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:17:23.115Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Invalid input"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:17:25.167Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20is%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What is the role of artificial intelligence in enhancing predictive analytics for climate change modeling?,",
+            "How does blockchain technology transform supply chain management in the pharmaceutical industry?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:17:26.419Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20i"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Exploring Advanced Natural Language Processing Techniques for Understanding Sentence Structure and Context",
+            "This research delves into the advancements in natural language processing (NLP) that enhance the comprehension of sentence structure and contextual understanding. The study focuses on the latest algorithms and methodologies that allow machines to process and interpret language with greater accuracy, specifically targeting complex sentence variations and real-world application challenges."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:17:28.160Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20is%20the"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "What is the impact of artificial intelligence on sustainable energy solutions in urban environments?",
+            "What is the role of microbiomes in the health and growth of coral reef ecosystems?",
+            "What is the effectiveness of cognitive-behavioral therapy in treating anxiety-related disorders compared to pharmacological interventions?"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:17:28.367Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20is%20the%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "In-depth Analysis of Quantum Computing and Its Impact on Cryptography",
+            "Evaluation of Artificial Intelligence in Enhancing Renewable Energy Systems",
+            "Exploring the Evolution of Blockchain Technology for Supply Chain Management"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:18:08.529Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=what%20is%20the"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "In-depth Analysis of Quantum Computing and Its Impact on Cryptography",
+            "Evaluation of Artificial Intelligence in Enhancing Renewable Energy Systems",
+            "Exploring the Evolution of Blockchain Technology for Supply Chain Management"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:47.510Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "need a course on"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:49.478Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20qunatum%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "best online courses for beginners in quantum physics",
+            "advanced quantum mechanics course with certification",
+            "comprehensive introduction to quantum computing course"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:54.717Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20qunatum%20computing%20but%20no%20vide"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "searching for an advanced online quantum computing course focused on text-based content and hands-on exercises without video lectures."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:54.821Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user is looking for a course on quantum computing but prefers not to have video content. Therefore, articles that can offer comprehensive textual resources such as online courses or books on the subject would be ideal.",
+        "queries": [
+            "quantum computing online course text",
+            "quantum computing courses no video"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "list"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:54.851Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de231663f0872ea0d1e3f7",
+            "status": "The user is looking for a course on quantum computing but prefers not to have video content. Therefore, articles that can offer comprehensive textual resources such as online courses or books on the subject would be ideal.",
+            "message": "The user is looking for a course on quantum computing but prefers not to have video content. Therefore, articles that can offer comprehensive textual resources such as online courses or books on the subject would be ideal."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:54.858Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de231663f0872ea0d1e3f7",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "scraper"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:20:54.871Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:20:54.872Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:20:54.873Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "quantum computing online course text",
+            "quantum computing courses no video"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:20:54.873Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:20:55.266Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20qunatum%20computing%20but%20no%20videos"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "In-depth Course on Quantum Computing with Text-Based Materials",
+            "Comprehensive PDF Study Guide for Quantum Computing Concepts",
+            "Quantum Computing Learning Modules with Interactive Exercises and No Video Content"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:21:03.198Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "quantum computing online course text",
+        "count": 3
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:21:08.124Z",
+    "message": "Google fetch success",
+    "meta": {
+        "q": "quantum computing courses no video",
+        "count": 3
+    }
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T11:22:22.005Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": false,
+        "statusCode": 404,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/"
+        },
+        "message": "Route is not found",
+        "data": null,
+        "trace": {
+            "error": "Error: Route is not found\n    at exports.default (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\src\\handlers\\notFound.ts:7:15)\n    at Layer.handle [as handle_request] (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at SendStream.error (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\serve-static\\index.js:121:7)\n    at SendStream.emit (node:events:519:28)\n    at SendStream.emit (node:domain:489:12)\n    at SendStream.error (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\send\\index.js:270:17)"
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:23:25.917Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20quantum%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "need a quantum computing solution for optimizing supply chain logistics",
+            "need a quantum cryptography method for securing blockchain transactions",
+            "need a quantum algorithm for enhancing machine learning model accuracy"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:23:30.421Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20qu"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Need a quantum computing tutorial for beginners focusing on Qiskit applications",
+            "Need a quick guide on quadratic equations for high school math teachers",
+            "Need a quality management framework implementation guide for small businesses"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:23:31.070Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "need a comprehensive study on the effects of urban green spaces on mental health",
+            "need a detailed analysis of renewable energy adoption in small rural communities",
+            "need a methodological review on the impact of early childhood education on long-term academic success"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:39.754Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.165Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.643Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.655Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.665Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.667Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.669Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:41.672Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:47.228Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:48.932Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Best online programming languages courses for beginners in 2024",
+            "Comprehensive guide to choosing the right digital marketing certification course",
+            "Top accredited online universities offering data science degree programs"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:51.387Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "online quantum mechanics certification for beginners",
+            "advanced quantum computing course for data scientists",
+            "interactive online course on quantum theory applications in technology"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:24:54.817Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Comprehensive Online Course: Quantum Computing for Beginners",
+            "Advanced Quantum Computing Techniques for Software Developers",
+            "Practical Quantum Computing: Real-world Applications and Case Studies"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:04.963Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user is seeking educational resources on quantum computing. Given the need for in-depth learning, articles or videos would be best to understand the subject. Videos may provide visual and interactive learning, which can be helpful for complex topics like quantum computing.",
+        "queries": [
+            "beginner courses on quantum computing",
+            "quantum computing tutorials for beginners"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "videos",
+        "detectedOutputType": "list"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:05.036Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de2410fd216635eba1c830",
+            "status": "The user is seeking educational resources on quantum computing. Given the need for in-depth learning, articles or videos would be best to understand the subject. Videos may provide visual and interactive learning, which can be helpful for complex topics like quantum computing.",
+            "message": "The user is seeking educational resources on quantum computing. Given the need for in-depth learning, articles or videos would be best to understand the subject. Videos may provide visual and interactive learning, which can be helpful for complex topics like quantum computing."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:05.056Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de2410fd216635eba1c830",
+        "format": "videos",
+        "sources": [
+            "youtube"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:05.913Z",
+    "message": "YouTube fetch success",
+    "meta": {
+        "q": "beginner courses on quantum computing",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:06.455Z",
+    "message": "YouTube fetch success",
+    "meta": {
+        "q": "quantum computing tutorials for beginners",
+        "count": 5
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:06.470Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de2410fd216635eba1c830",
+        "totalResults": 10
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:06.485Z",
+    "message": "Critic starting evaluation for job: 69de2410fd216635eba1c830",
+    "meta": {
+        "rawCount": 10
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:06.504Z",
+    "message": "Filtering done",
+    "meta": {
+        "jobId": "69de2410fd216635eba1c830",
+        "after": 7,
+        "before": 10
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:06.523Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "7"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:11.970Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de231663f0872ea0d1e3f7",
+        "format": "articles",
+        "sources": [
+            "tavily",
+            "scraper"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:11.982Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:11.983Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:11.984Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "quantum computing online course text",
+            "quantum computing courses no video"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:11.985Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:11.991Z",
+    "message": "Google cache hit",
+    "meta": {
+        "q": "quantum computing online course text"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:11.997Z",
+    "message": "Google cache hit",
+    "meta": {
+        "q": "quantum computing courses no video"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:12.352Z",
+    "message": "Scraper cache hit",
+    "meta": {
+        "url": "https://files.batistalab.com/teaching/attachments/chem584/Mosca.pdf"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:12.353Z",
+    "message": "Scraper cache hit",
+    "meta": {
+        "url": "https://homepages.cwi.nl/~rdewolf/qcnotes.pdf"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:16.197Z",
+    "message": "Ranking complete",
+    "meta": {
+        "engine": "openai",
+        "ranked": 7
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:16.215Z",
+    "message": "Critic: evaluation completed for job: 69de2410fd216635eba1c830",
+    "meta": {}
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T11:25:16.236Z",
+    "message": "PubSub subscriber error",
+    "meta": {
+        "err": {
+            "name": "Error",
+            "message": "write ECONNABORTED",
+            "trace": "Error: write ECONNABORTED\n    at afterWriteDispatched (node:internal/stream_base_commons:159:15)\n    at writeGeneric (node:internal/stream_base_commons:150:3)\n    at Socket._writeGeneric (node:net:966:11)\n    at Socket._write (node:net:978:8)\n    at writeOrBuffer (node:internal/streams/writable:572:12)\n    at _write (node:internal/streams/writable:501:10)\n    at Socket.Writable.write (node:internal/streams/writable:510:10)\n    at EventEmitter.sendCommand (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\ioredis\\built\\Redis.js:406:29)\n    at EventEmitter.quit (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\ioredis\\built\\utils\\Commander.js:90:25)\n    at D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\src\\utils\\pubsub.ts:72:13"
+        },
+        "jobId": "69de2410fd216635eba1c830"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:16.241Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "6"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:23.293Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=giv"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "The impact of appearance and conflict in 'Giovanni's Room' by James Baldwin",
+            "An analysis of Giuseppe Verdi's influence on modern operatic compositions",
+            "Understanding the genetic variations and adaptations in Givira moth species"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:28.784Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Best online programming languages courses for beginners in 2024",
+            "Comprehensive guide to choosing the right digital marketing certification course",
+            "Top accredited online universities offering data science degree programs"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:38.407Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20comput"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Where to find beginner-friendly online courses in quantum computing for non-physicists?",
+            "Comparison of advanced quantum computing curriculums offered by top universities in 2024",
+            "Exploring certification courses in quantum computing for technology professionals in the USA"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:39.549Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Comprehensive Online Course: Quantum Computing for Beginners",
+            "Advanced Quantum Computing Techniques for Software Developers",
+            "Practical Quantum Computing: Real-world Applications and Case Studies"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.129Z",
+    "message": "Autonomous Plan Generated",
+    "meta": {
+        "engine": "openai",
+        "thought": "The user's prompt is in English and they are explicitly seeking a course on quantum computing but do not want video content. Therefore, articles would be the most suitable format as they could include written courses or guides. A summary will effectively provide an overview of what's available.",
+        "queries": [
+            "quantum computing online course articles",
+            "written guides on quantum computing for beginners"
+        ],
+        "detectedLanguage": "English",
+        "detectedFormat": "articles",
+        "detectedOutputType": "summary"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.161Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 202,
+        "request": {
+            "ip": "::1",
+            "method": "POST",
+            "url": "/v1/researcher"
+        },
+        "message": "Research job initiated successfully",
+        "data": {
+            "jobId": "69de243afd216635eba1c872",
+            "status": "The user's prompt is in English and they are explicitly seeking a course on quantum computing but do not want video content. Therefore, articles would be the most suitable format as they could include written courses or guides. A summary will effectively provide an overview of what's available.",
+            "message": "The user's prompt is in English and they are explicitly seeking a course on quantum computing but do not want video content. Therefore, articles would be the most suitable format as they could include written courses or guides. A summary will effectively provide an overview of what's available."
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.167Z",
+    "message": "Crawler starting",
+    "meta": {
+        "jobId": "69de243afd216635eba1c872",
+        "format": "articles",
+        "sources": [
+            "tavily"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:46.182Z",
+    "message": "TAVILY_API_KEY not set — skipping Tavily fetch",
+    "meta": {}
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:46.183Z",
+    "message": "tavily returned 0 results — falling back to Brave",
+    "meta": {
+        "queries": [
+            "quantum computing online course articles",
+            "written guides on quantum computing for beginners"
+        ]
+    }
+}
+{
+    "level": "WARN",
+    "timestamp": "2026-04-14T11:25:46.184Z",
+    "message": "BRAVE_API_KEY not set — skipping Brave fallback",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.185Z",
+    "message": "Crawl complete",
+    "meta": {
+        "jobId": "69de243afd216635eba1c872",
+        "totalResults": 0
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.210Z",
+    "message": "Critic starting evaluation for job: 69de243afd216635eba1c872",
+    "meta": {
+        "rawCount": 0
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.215Z",
+    "message": "Job completed [crawl-queue]",
+    "meta": {
+        "jobId": "8"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:46.237Z",
+    "message": "Job completed [critic-queue]",
+    "meta": {
+        "jobId": "7"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:25:47.451Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20o%20videos"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Exploring Quantum Computing: Comprehensive E-Book Resources for Self-Learners",
+            "PDF and Text-Based Resources for Studying Quantum Computing Without Video Content",
+            "Non-Video Curricular Materials for Learning Quantum Computing: Books and Articles"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:26:57.489Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Best online programming languages courses for beginners in 2024",
+            "Comprehensive guide to choosing the right digital marketing certification course",
+            "Top accredited online universities offering data science degree programs"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:00.426Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20q"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Comprehensive Quantum Computing Course for Beginners: Understanding Qubits, Algorithms, and Practical Applications",
+            "In-depth Study on Q Methodology: Designing and Analyzing Q Sorts in Social Science Research",
+            "Advanced Quantum Mechanics Online Course: Exploring Q Operators and Quantum State Transformations"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:03.479Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "online quantum mechanics certification for beginners",
+            "advanced quantum computing course for data scientists",
+            "interactive online course on quantum theory applications in technology"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:04.745Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "online quantum mechanics certification for beginners",
+            "advanced quantum computing course for data scientists",
+            "interactive online course on quantum theory applications in technology"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:18.391Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Looking for text-based quantum computing courses with comprehensive explanations and exercises for beginners",
+            "Seeking quantum computing textbooks or online reading materials with interactive problem-solving, no video content",
+            "Request recommendations for quantum computing e-books or written modules with step-by-step learning guides"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:20.131Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20i"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Request for a Comprehensive Quantum Computing Textbook-Based Course Without Video Lectures",
+            "Seeking Beginner-Friendly Quantum Computing Course Materials with No Video Content",
+            "Inquiry for Text-Based Quantum Computing Curriculum Focused on Theory and Practical Applications"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:22.691Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20its%20crawlin"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "need a course on quantum computing but no videos it no understand its crawlin"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:29.719Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20its%20crawling"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Comprehensive Text-Based Online Quantum Computing Course Without Videos",
+            "Written Tutorials and Exercises for Learning Quantum Computing Theory",
+            "Interactive Text-Only Quantum Computing Course with Step-by-Step Guidance"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:39.654Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Find a comprehensive online course on quantum computing that relies solely on textual materials and interactive simulations for learning.",
+            "Research written guides or textbooks offering step-by-step learning on quantum computing with accompanying problem sets but excluding multimedia content.",
+            "Explore online platforms providing quantum computing courses that emphasize PDF notes, quizzes, and worksheets without incorporating any video lectures."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:27:46.210Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20its%20crawling"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Comprehensive Text-Based Online Quantum Computing Course Without Videos",
+            "Written Tutorials and Exercises for Learning Quantum Computing Theory",
+            "Interactive Text-Only Quantum Computing Course with Step-by-Step Guidance"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:28:30.967Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20it%20no%20understand%20its%20crawlin"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "need a course on quantum computing but no videos it no understand its crawlin"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:28:33.136Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=need%20a%20course%20on%20quantum%20computing%20but%20no%20videos%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Find a comprehensive online course on quantum computing that relies solely on textual materials and interactive simulations for learning.",
+            "Research written guides or textbooks offering step-by-step learning on quantum computing with accompanying problem sets but excluding multimedia content.",
+            "Explore online platforms providing quantum computing courses that emphasize PDF notes, quizzes, and worksheets without incorporating any video lectures."
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:03.809Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.775Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.964Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.969Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.972Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.974Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.975Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:04.975Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:43.492Z",
+    "message": "Queue initialized: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.336Z",
+    "message": "Queue initialized: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.518Z",
+    "message": "Database connection established",
+    "meta": {
+        "CONNECTION_NAME": "agentflow"
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.527Z",
+    "message": "Rate limiter initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.531Z",
+    "message": "Worker started: crawl-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.534Z",
+    "message": "Worker started: critic-queue",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.535Z",
+    "message": "Agent workers initiated",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:29:44.536Z",
+    "message": "Application started on port 3000",
+    "meta": {
+        "SERVER_URL": "http://localhost:3000"
+    }
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T11:29:44.878Z",
+    "message": "Job failed [crawl-queue]",
+    "meta": {
+        "jobId": "6",
+        "err": {
+            "name": "UnrecoverableError",
+            "message": "job stalled more than allowable limit",
+            "trace": "UnrecoverableError: job stalled more than allowable limit\n    at failed.retryIfFailed.delayInMs (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:988:19)\n    at Worker.retryIfFailed (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:1389:22)\n    at D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:980:39\n    at trace (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\utils\\index.ts:363:12)\n    at Worker.trace (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\queue-base.ts:212:17)\n    at Worker.processJob (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:957:17)\n    at Worker.mainLoop (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:647:16)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Worker.run (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:558:7)"
+        }
+    }
+}
+{
+    "level": "ERROR",
+    "timestamp": "2026-04-14T11:29:44.880Z",
+    "message": "Crawl job failed: 69de231663f0872ea0d1e3f7",
+    "meta": {
+        "err": {
+            "name": "UnrecoverableError",
+            "message": "job stalled more than allowable limit",
+            "trace": "UnrecoverableError: job stalled more than allowable limit\n    at failed.retryIfFailed.delayInMs (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:988:19)\n    at Worker.retryIfFailed (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:1389:22)\n    at D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:980:39\n    at trace (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\utils\\index.ts:363:12)\n    at Worker.trace (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\queue-base.ts:212:17)\n    at Worker.processJob (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:957:17)\n    at Worker.mainLoop (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:647:16)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Worker.run (D:\\Coderatory\\AgentFlow AI\\base-server-agentflow\\node_modules\\bullmq\\src\\classes\\worker.ts:558:7)"
+        }
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:30:18.604Z",
+    "message": "Redis cache connected",
+    "meta": {}
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:30:20.898Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20article%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "request a scholarly article on the impact of climate change on marine biodiversity",
+            "find a peer-reviewed article discussing the effectiveness of mindfulness in reducing stress",
+            "locate a research article analyzing the economic implications of renewable energy adoption in urban areas"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:30:21.790Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20article%20of"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "provide me an in-depth article on the latest advancements in renewable energy technologies",
+            "find a scholarly article discussing the impacts of social media on mental health among teenagers",
+            "search for an article exploring the economic effects of remote work trends post-pandemic"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:30:22.294Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20article%20of%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Article exploring the economic impacts of renewable energy adoption in urban areas",
+            "In-depth article analyzing the psychological effects of social media on adolescent mental health",
+            "Comprehensive article on the advancements in gene editing technologies and their ethical implications"
+        ]
+    }
+}
+{
+    "level": "INFO",
+    "timestamp": "2026-04-14T11:30:24.308Z",
+    "message": "Controller Response",
+    "meta": {
+        "success": true,
+        "statusCode": 200,
+        "request": {
+            "ip": "::ffff:127.0.0.1",
+            "method": "GET",
+            "url": "/v1/researcher/suggest?q=give%20me%20a%20article%20of%20quantum%20"
+        },
+        "message": "Suggestions retrieved",
+        "data": [
+            "Explore the implications of quantum entanglement in quantum computing advancements",
+            "Investigate the role of quantum superposition in the development of quantum algorithms",
+            "Analyze the impact of quantum cryptography on cybersecurity measures in modern communication systems"
+        ]
+    }
+}
