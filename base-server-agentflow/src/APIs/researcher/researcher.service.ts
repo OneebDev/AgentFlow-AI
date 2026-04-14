@@ -4,21 +4,12 @@ import { EJobStatus, EQueueName } from '../_shared/types/agents.interface';
 import { createQueue } from '../../utils/queue';
 import { publishJobEvent } from '../../utils/pubsub';
 import { IResearchRequest, IResearchResponse, TResearchFormat } from './types';
+import { planResearch } from './processors/planner';
 
 const crawlQueue = createQueue(EQueueName.CRAWL);
 
 /**
- * Maps the user-facing format to:
- *   sources     — which fetchers the Crawler will use (in priority order)
- *   outputFormat — what the Critic filter uses to strip mismatched content
- *   intent       — semantic label forwarded to the Gemini ranker
- *
- * Routing mirrors the spec:
- *   learning / articles → Tavily (deep)  → fallback Brave
- *   general             → Serper organic → fallback Brave
- *   news                → Serper news    → fallback Brave
- *   products / shopping → Serper organic → fallback Brave
- *   videos              → YouTube (no text fallback — format-specific)
+ * Maps the user-facing format to config.
  */
 function resolveFormatConfig(format: TResearchFormat): {
     sources:      string[];
@@ -63,13 +54,23 @@ export class ResearcherService {
     async initiateResearch(data: IResearchRequest): Promise<IResearchResponse> {
         const { sources, outputFormat, intent } = resolveFormatConfig(data.format!);
 
-        // 1. Create Job in MongoDB
+        // 1. Planning Phase (Agentic Brain / Antigravity Style)
+        // Thinking before acting to save API costs & improve quality.
+        const { thought, queries } = await planResearch(
+            data.topic,
+            data.format!,
+            data.language || 'English'
+        );
+
+        // 2. Create Job in MongoDB
         const job = await jobRepo.createJob({
-            userId: 'default_user', // This would come from auth in a real app
+            userId: 'default_user',
             query: data.topic,
             status: EJobStatus.PENDING,
             metadata: {
-                format: data.format,
+                thought, 
+                searchQueries: queries,
+                format: data.topic,
                 language: data.language,
                 outputType: data.outputType,
                 depth: data.depth,
@@ -79,15 +80,19 @@ export class ResearcherService {
 
         const jobId = job._id.toString();
 
-        // 2. Transition to RESEARCHING immediately and broadcast — the browser
-        //    sees this within milliseconds via SSE, before any worker runs.
+        // 3. Transition to RESEARCHING
         await jobRepo.updateJobStatus(jobId, EJobStatus.RESEARCHING);
-        publishJobEvent(jobId, { type: 'status', status: 'researching' });
+        publishJobEvent(jobId, { 
+            type: 'status', 
+            status: 'researching',
+            thought 
+        });
 
-        // 3. Enqueue in BullMQ — pass full format context through the pipeline
+        // 4. Enqueue in BullMQ with strategic queries
         await crawlQueue.add(`crawl:${jobId}`, {
             jobId,
             query: data.topic,
+            searchQueries: queries,
             format: data.format,
             language: data.language,
             outputType: data.outputType,
@@ -99,7 +104,7 @@ export class ResearcherService {
         return {
             jobId,
             status: 'pending',
-            message: `Research initiated for topic: ${data.topic}`,
+            message: thought, 
         };
     }
 
