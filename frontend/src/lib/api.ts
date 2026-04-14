@@ -15,9 +15,9 @@ export type TOutputType    = 'summary'  | 'list';
 
 export const submitResearch = async (
     topic:      string,
-    format:     TResearchFormat = 'articles',
-    language:   string          = 'English',
-    outputType: TOutputType     = 'list',
+    format?:    TResearchFormat | null,
+    language?:  string | null,
+    outputType?: TOutputType | null,
     depth:      string          = 'basic',
 ) => {
     const { data } = await api.post('/researcher', { topic, format, language, outputType, depth });

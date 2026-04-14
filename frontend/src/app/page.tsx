@@ -64,7 +64,7 @@ function Pill({
 
 export default function Home() {
     const {
-        jobId, status, topic, results, errorMessage,
+        jobId, status, topic, thought, results, errorMessage,
         setJob, setStatus, setResults, setError, reset,
     } = useSearchStore();
 
@@ -102,15 +102,11 @@ export default function Home() {
         e.preventDefault();
         if (!inputValue.trim()) return;
 
-        // ── Clarification gate (frontend mirror of the backend gate) ──────────
-        // If the user hasn't explicitly chosen all three filters, highlight them
-        // and stop — do NOT send the request.
-        if (!format || !language || !outputType) {
-            setShowClarification(true);
-            return;
-        }
+        // ── Clarification gate removed ──────────
+        // The agent is now autonomous and will detect format/language/outputType
+        // from the prompt itself.
         setShowClarification(false);
-        // ─────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────
 
         try {
             const data = await submitResearch(inputValue, format, language, outputType);
@@ -131,7 +127,7 @@ export default function Home() {
             es.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'status') {
-                    setStatus(msg.status);
+                    setStatus(msg.status, msg.thought);
                 } else if (msg.type === 'completed') {
                     setResults(msg.results);
                     closeStream();
@@ -297,9 +293,14 @@ export default function Home() {
                                     Ongoing Research
                                 </span>
                                 <h2 className="text-3xl font-bold mt-2">{topic}</h2>
-                                {format && language && outputType && (
-                                    <p className="text-xs text-gray-500 mt-1 capitalize">
-                                        {format} · {language} · {outputType}
+                                {thought && (
+                                    <p className="text-sm text-brand-primary mt-3 italic max-w-2xl mx-auto">
+                                        " {thought} "
+                                    </p>
+                                )}
+                                {(format || language || outputType) && (
+                                    <p className="text-xs text-gray-500 mt-2 capitalize font-mono">
+                                        {format || 'Auto'} · {language || 'Auto'} · {outputType || 'Auto'}
                                     </p>
                                 )}
                             </div>

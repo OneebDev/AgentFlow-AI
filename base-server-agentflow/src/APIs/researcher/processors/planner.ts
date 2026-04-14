@@ -4,68 +4,66 @@ import logger from '../../../handlers/logger';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
- * System instruction to turn Gemini into a Strategic Research Planner.
+ * Super-Agent Instruction: Autonomous Analysis
  */
-function buildPlannerInstruction(language: string): string {
-    const lang = language || 'English';
+function buildPlannerInstruction(): string {
     return `
-You are a Strategic Research Agent. Your goal is to minimize API costs while maximizing research quality.
-The user provides a topic, and you must generate 1 to 3 highly effective search queries.
+You are an Autonomous Research Architect. Your task is to analyze the user's prompt and decide the best research strategy.
+You must determine the intent, language, and best output format yourself.
 
-RULES:
-1. ALL human-readable text (thoughts) MUST be in ${lang}.
-2. Think strategically: What is the core of this topic? What information is missing?
-3. Generate exactly 1 to 3 queries. Quality over quantity.
-4. Respond ONLY with valid JSON.
+ANALYSIS RULES:
+1. Determine the language of the prompt and respond in that language.
+2. Decide the format: 
+   - 'videos' if they ask to watch/see/videos.
+   - 'news' if it's about current events.
+   - 'products' if it's about buying/shopping.
+   - 'articles' for everything else (learning/research).
+3. Decide the outputType: 'summary' for complex topics, 'list' for quick facts.
 
-JSON SHAPE:
+JSON RESPONSE SHAPE:
 {
-  "thought": "A brief explanation of your research strategy in ${lang}.",
-  "queries": ["query 1", "query 2"]
+  "thought": "Your reasoning behind the format and strategy chosen.",
+  "queries": ["strategic query 1", "strategic query 2"],
+  "detectedLanguage": "English/Urdu/Hindi",
+  "detectedFormat": "articles|videos|news|products",
+  "detectedOutputType": "summary|list"
 }
 `.trim();
 }
 
-/**
- * Plans the research by generating strategic search queries using Gemini.
- */
-export async function planResearch(
-    topic:    string,
-    format:   string,
-    language: string,
-): Promise<{ thought: string; queries: string[] }> {
+export async function planResearch(topic: string) {
     const model = genAI.getGenerativeModel({
         model:            process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-        systemInstruction: buildPlannerInstruction(language),
+        systemInstruction: buildPlannerInstruction(),
         generationConfig: {
             temperature:      0.4,
-            maxOutputTokens:  800,
+            maxOutputTokens:  1000,
             responseMimeType: 'application/json',
         },
     } as any);
 
-    const prompt = `Topic: ${topic}\nFormat: ${format}`;
-
     try {
-        const result = await model.generateContent(prompt);
+        const result = await model.generateContent(`User Prompt: "${topic}"`);
         const raw    = result.response.text().trim();
         const parsed = JSON.parse(raw);
 
-        logger.info('Research plan generated', { 
-            meta: { thought: parsed.thought, queries: parsed.queries } 
-        });
+        logger.info('Autonomous Plan Generated', { meta: parsed });
 
         return {
-            thought: parsed.thought || 'Planning research strategy...',
-            queries: parsed.queries || [topic],
+            thought:    parsed.thought,
+            queries:    parsed.queries,
+            language:   parsed.detectedLanguage   || 'English',
+            format:     parsed.detectedFormat     || 'articles',
+            outputType: parsed.detectedOutputType || 'list'
         };
     } catch (err: any) {
-        logger.error('Research planning failed — falling back to raw topic', {
-            meta: { err: err.message },
-        });
+        logger.error('Autonomous Planning failed', { meta: { err: err.message } });
         return {
-            thought: 'Executing search for the provided topic.',
-            queries: [topic],
+            thought:    'Analyzing prompt directly...',
+            queries:    [topic],
+            language:   'English',
+            format:     'articles',
+            outputType: 'list'
         };
     }
 }

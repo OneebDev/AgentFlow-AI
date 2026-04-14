@@ -52,15 +52,15 @@ function resolveFormatConfig(format: TResearchFormat): {
 
 export class ResearcherService {
     async initiateResearch(data: IResearchRequest): Promise<IResearchResponse> {
-        const { sources, outputFormat, intent } = resolveFormatConfig(data.format!);
+        // 1. Autonomous Planning (Agent analyzes the prompt itself)
+        const plan = await planResearch(data.topic);
 
-        // 1. Planning Phase (Agentic Brain / Antigravity Style)
-        // Thinking before acting to save API costs & improve quality.
-        const { thought, queries } = await planResearch(
-            data.topic,
-            data.format!,
-            data.language || 'English'
-        );
+        // Use AI detected values unless frontend explicitly overrides (optional)
+        const finalFormat     = data.format     || plan.format;
+        const finalLanguage   = data.language   || plan.language;
+        const finalOutputType = data.outputType || plan.outputType;
+
+        const { sources, outputFormat, intent } = resolveFormatConfig(finalFormat as any);
 
         // 2. Create Job in MongoDB
         const job = await jobRepo.createJob({
@@ -68,13 +68,12 @@ export class ResearcherService {
             query: data.topic,
             status: EJobStatus.PENDING,
             metadata: {
-                thought, 
-                searchQueries: queries,
-                format: data.topic,
-                language: data.language,
-                outputType: data.outputType,
+                thought: plan.thought, 
+                searchQueries: plan.queries,
+                format: finalFormat,
+                language: finalLanguage,
+                outputType: finalOutputType,
                 depth: data.depth,
-                options: data.options,
             }
         });
 
@@ -85,17 +84,17 @@ export class ResearcherService {
         publishJobEvent(jobId, { 
             type: 'status', 
             status: 'researching',
-            thought 
+            thought: plan.thought 
         });
 
         // 4. Enqueue in BullMQ with strategic queries
         await crawlQueue.add(`crawl:${jobId}`, {
             jobId,
             query: data.topic,
-            searchQueries: queries,
-            format: data.format,
-            language: data.language,
-            outputType: data.outputType,
+            searchQueries: plan.queries,
+            format: finalFormat as any,
+            language: finalLanguage,
+            outputType: finalOutputType as any,
             sources,
             intent,
             outputFormat,
@@ -103,8 +102,8 @@ export class ResearcherService {
 
         return {
             jobId,
-            status: 'pending',
-            message: thought, 
+            status: plan.thought as any,
+            message: plan.thought, 
         };
     }
 
