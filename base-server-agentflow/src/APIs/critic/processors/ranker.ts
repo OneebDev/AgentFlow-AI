@@ -5,28 +5,43 @@ import logger from '../../../handlers/logger';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-function buildSystemInstruction(outputType: string, language: string, requestedQuantity: number | null): string {
+function buildSystemInstruction(originalQuery: string, _outputType: string, language: string, requestedQuantity: number | null): string {
     const qtyRule = requestedQuantity 
         ? `return EXACTLY ${requestedQuantity} high-quality resources` 
         : `return 5 to 10 high-quality resources by default`;
+    
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.toLocaleString('default', { month: 'long' });
 
     return `
-You are an Advanced AI Research Assistant and Resource Aggregator. Your task is to provide the most accurate, complete, and direct analysis of search results.
+You are an Advanced AI Research Assistant. Your goal is to provide a clean, human-like, and "ChatGPT-style" response. 
 
-CORE INSTRUCTIONS:
-1. USE LATEST DATA: Always prioritize the most recent information found in the candidates.
-2. ENRICHED SUMMARY: 
-   - If a year (e.g., 2024, 2025) is mentioned in the results, explicitly include it in your summary.
-   - If no year is mentioned, assume the current timeframe and respond accordingly.
-3. COMPLETE LIST: After your summary, provides a complete and detailed list of all relevant information found (ChatGPT-style breakdown).
-4. CLOSING NOTE: You MUST end your "summary" field with the exact text: "I have also provided relevant resources below for further exploration."
-5. DIRECT ANSWERS ONLY: Do not provide hints, suggestions, or partial instructions. Treat the query as a direct command for information. 
-6. ROBUSTNESS: Do not get confused by quotation marks (" ") or question marks (?). Treat the entire input as a direct query.
+STRICT OUTPUT RULES:
+1. NO ROBOTIC PHRASES: Do NOT use phrases like "According to current timeframe", "Based on latest data", or "As of my knowledge cutoff". 
+2. NATURAL ANSWERS: Start the response directly and naturally. 
+   - If a specific timeframe (year/month) is mentioned in the question or sources, prioritize it.
+   - If no specific timeframe is mentioned, use "${currentMonth} ${currentYear}" naturally (e.g., "As of ${currentMonth} ${currentYear}, ...").
+3. COPY-FRIENDLY FORMATTING: The "summary" field in your JSON must be structured exactly like this:
+
+Question:
+${originalQuery}
+
+Answer / Summary:
+[A clean, simple, human-like paragraph explaining the main answer.]
+
+Detailed Insights:
+[Proper bullet points or numbered list of key findings.]
+
+Why this answer (Justification):
+[Clear reasoning based on market trends, adoption rates, investment, usage, and developer activity.]
+
+I have also provided relevant resources below for further exploration.
 
 RESOURCE RULES:
 1. QUANTITY: ${qtyRule} in the "rankedList".
 2. PRIORITIZATION: Prioritize trusted sources: YouTube, Google Scholar, Research Journals, and Official Websites.
-3. LANGUAGE: All output must be in "${language}".
+3. LANGUAGE: All output text MUST be in "${language}" language.
 
 STRICT JSON RESPONSE SHAPE:
 {
@@ -34,8 +49,8 @@ STRICT JSON RESPONSE SHAPE:
     { "rank": 1, "score": 95, "title": "...", "url": "...", "sourceType": "...", "description": "...", "reason": "..." }
   ],
   "bestResult": { "rank": 1, "score": 95, "title": "...", "url": "...", "sourceType": "...", "description": "...", "reason": "..." },
-  "summary": "[Enriched Summary with Year] \\n\\n [Detailed ChatGPT-style List] \\n\\n I have also provided relevant resources below for further exploration.",
-  "keyPoints": ["Numbered point 1", "Numbered point 2"]
+  "summary": "Full text following the 'COPY-FRIENDLY FORMATTING' above",
+  "keyPoints": ["...", "..."]
 }
 `.trim();
 }
@@ -52,12 +67,12 @@ export async function rankWithGemini(
 
     const useOpenAI = process.env.AI_ENGINE === 'openai';
 
-    const slimCandidates = candidates.slice(0, 100).map((c, i) => ({
+    const slimCandidates = candidates.slice(0, 50).map((c, i) => ({
         index:       i,
         sourceType:  c.sourceType,
         title:       c.title,
         url:         c.url,
-        description: (c.description || '').slice(0, 300),
+        description: (c.description || '').slice(0, 250),
     }));
 
     const prompt = JSON.stringify({
@@ -71,17 +86,21 @@ export async function rankWithGemini(
             const response = await openai.chat.completions.create({
                 model:           process.env.OPENAI_MODEL || 'gpt-4o',
                 messages:        [
-                    { role: 'system', content: buildSystemInstruction(outputType, language, requestedQuantity) },
+                    { role: 'system', content: buildSystemInstruction(originalQuery, outputType, language, requestedQuantity) },
                     { role: 'user',   content: prompt },
                 ],
                 response_format: { type: 'json_object' },
+                max_tokens:      4096, // Plenty of room for long summary
             });
             raw = response.choices[0].message.content || '{}';
         } else {
             const model = genAI.getGenerativeModel({
                 model:            process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-                systemInstruction: buildSystemInstruction(outputType, language, requestedQuantity),
-                generationConfig:  { responseMimeType: 'application/json' },
+                systemInstruction: buildSystemInstruction(originalQuery, outputType, language, requestedQuantity),
+                generationConfig:  { 
+                    responseMimeType: 'application/json',
+                    maxOutputTokens: 4096,
+                },
             } as any);
             const result = await model.generateContent(prompt);
             raw = result.response.text();

@@ -138,9 +138,11 @@ export default function Home() {
 
         suggestTimeoutRef.current = setTimeout(async () => {
             try {
+                if (!val.trim()) return; // Don't fetch for empty
                 setIsTyping(true);
                 const res = await getSuggestions(val);
-                setAiSuggestions(res);
+                // ONLY set if input is still the same and hasn't been cleared by handleSearch
+                setAiSuggestions(prev => val.trim() ? res : []);
             } catch (err) {
                 console.error("Suggestion fetch failed", err);
                 setAiSuggestions([]);
@@ -459,7 +461,7 @@ export default function Home() {
                                                         </div>
                                                     )}
 
-                                                    {(msg.results?.rankedList?.length > 0) && renderResults(msg.results)}
+                                                    {(msg.results?.summary || msg.results?.rankedList?.length > 0) && renderResults(msg.results)}
                                                 </div>
                                             )}
                                         </div>
@@ -477,7 +479,7 @@ export default function Home() {
                         
                         {/* Auto-suggest dropdown */}
                         <AnimatePresence>
-                            {aiSuggestions.length > 0 && (
+                            {(aiSuggestions.length > 0 && inputValue.trim().length > 0) && (
                                 <motion.div 
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}

@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 export const startResearchSchema = Joi.object({
-    topic: Joi.string().required().min(3),
+    topic: Joi.string().required().min(1),
     format:     Joi.string().valid('articles', 'videos', 'products', 'news').allow(null).optional(),
     language:   Joi.string().min(2).allow(null).optional(),
     outputType: Joi.string().valid('summary', 'list').allow(null).optional(),
