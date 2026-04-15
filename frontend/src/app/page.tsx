@@ -131,7 +131,7 @@ export default function Home() {
         setInputValue(val);
         if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
 
-        if (val.length < 3) {
+        if (val.length < 2) {
             setAiSuggestions([]);
             return;
         }
@@ -147,7 +147,7 @@ export default function Home() {
             } finally {
                 setIsTyping(false);
             }
-        }, 500);
+        }, 200);
     };
 
     const updateAgentMessage = (sessionId: string, msgId: string, updates: Partial<ChatMessage>) => {
@@ -162,6 +162,9 @@ export default function Home() {
 
     const handleSearch = async (query: string = inputValue) => {
         if (!query.trim()) return;
+        
+        // STOP suggestions immediately on Enter
+        if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
         setAiSuggestions([]);
         setInputValue('');
         setShowFilters(false);
@@ -223,6 +226,25 @@ export default function Home() {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'status') {
                     updateAgentMessage(targetSessionId, agentMsgId, { status: msg.status, thought: msg.thought });
+                } else if (msg.type === 'partial_results') {
+                    // Append partial results to existing rankedList (heuristically)
+                    setSessions(prev => prev.map(s => {
+                        if (s.id !== targetSessionId) return s;
+                        return {
+                            ...s,
+                            messages: s.messages.map(m => {
+                                if (m.id !== agentMsgId) return m;
+                                const existingResults = m.results || { rankedList: [] };
+                                return {
+                                    ...m,
+                                    results: {
+                                        ...existingResults,
+                                        rankedList: [...existingResults.rankedList, ...msg.results]
+                                    }
+                                };
+                            })
+                        };
+                    }));
                 } else if (msg.type === 'completed') {
                     updateAgentMessage(targetSessionId, agentMsgId, { status: 'completed', results: msg.results, thought: 'Task completed!' });
                     es.close();
@@ -306,7 +328,7 @@ export default function Home() {
     };
 
     return (
-        <div className="flex h-screen bg-[#0F1117] text-white font-sans overflow-hidden select-none">
+        <div className="flex h-screen bg-[#0F1117] text-white font-sans overflow-hidden select-none" suppressHydrationWarning>
             
             {/* ── Sidebar ──────────────────────────────────────────────────────── */}
             <AnimatePresence>
@@ -437,7 +459,7 @@ export default function Home() {
                                                         </div>
                                                     )}
 
-                                                    {msg.status === 'completed' && renderResults(msg.results)}
+                                                    {(msg.results?.rankedList?.length > 0) && renderResults(msg.results)}
                                                 </div>
                                             )}
                                         </div>

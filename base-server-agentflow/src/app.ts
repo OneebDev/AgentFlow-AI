@@ -23,8 +23,16 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, '../', 'public')))
 
 //Router
+app.get('/', (_req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'AgentFlow AI Backend is running',
+        health_check: '/v1/health'
+    })
+})
 // app.use('/v1', router)
 router(app)
+
 
 //404 handler
 app.use(notFound)

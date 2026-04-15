@@ -58,6 +58,11 @@ export class CrawlerService {
 
         const queries    = searchQueries?.length ? searchQueries : [query];
         const fetchTasks: Promise<{ type: string; results: any[] }>[] = [];
+        
+        // Calculate dynamic fetch limit based on requested quantity
+        // If 100 results requested and 3 queries, we need ~34 per query.
+        const reqQty = job.data.requestedQuantity ?? 10;
+        const perQueryLimit = Math.max(5, Math.ceil((reqQty * 1.5) / queries.length)); // 50% buffer
 
         // ── Source routing ────────────────────────────────────────────────────
         for (const source of sources ?? []) {
@@ -65,7 +70,7 @@ export class CrawlerService {
                 // Learning / articles → Tavily (deep search)
                 case 'tavily':
                     fetchTasks.push(
-                        fetchWithFallback('tavily', () => fetchTavily(queries), queries),
+                        fetchWithFallback('tavily', () => fetchTavily(queries, perQueryLimit), queries),
                     );
                     break;
 
@@ -89,21 +94,21 @@ export class CrawlerService {
                 // General / products → Serper organic
                 case 'serper':
                     fetchTasks.push(
-                        fetchWithFallback('serper', () => fetchSerper(queries, 'search'), queries),
+                        fetchWithFallback('serper', () => fetchSerper(queries, 'search', perQueryLimit), queries),
                     );
                     break;
 
                 // News → Serper news endpoint
                 case 'serper-news':
                     fetchTasks.push(
-                        fetchWithFallback('serper-news', () => fetchSerper(queries, 'news'), queries),
+                        fetchWithFallback('serper-news', () => fetchSerper(queries, 'news', perQueryLimit), queries),
                     );
                     break;
 
-                // Videos → YouTube only (format is explicitly video; no text fallback)
+                // Videos → YouTube only
                 case 'youtube':
                     fetchTasks.push(
-                        fetchYouTube(queries).then((r) => ({ type: 'youtube', results: r })),
+                        fetchYouTube(queries, perQueryLimit).then((r) => ({ type: 'youtube', results: r })),
                     );
                     break;
 
@@ -135,6 +140,9 @@ export class CrawlerService {
                 const { type, results } = outcome.value;
                 rawResults.push(...results);
                 await crawlRepo.createCrawlResult(dbJobId, type, results);
+                
+                // Stream partial results to UI for immediate feedback
+                publishJobEvent(jobId, { type: 'partial_results', results });
             } else if (outcome.status === 'rejected') {
                 logger.error('Fetcher task threw unexpectedly', {
                     meta: { err: outcome.reason, jobId },

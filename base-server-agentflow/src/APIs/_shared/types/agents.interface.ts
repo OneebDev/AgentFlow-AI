@@ -25,6 +25,7 @@ export interface IAgentJobPayload {
     query: string;
     format?: string;          // 'articles' | 'videos' | 'products' | 'news'
     language?: string;        // e.g. 'English', 'Urdu', 'Hindi'
+    requestedQuantity?: number | null;
     outputType?: string;      // 'summary' | 'list'
     intent?: string;
     outputFormat?: string;    // mapped from format for Critic filter

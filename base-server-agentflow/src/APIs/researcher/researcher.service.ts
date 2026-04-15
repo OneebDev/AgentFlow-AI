@@ -109,6 +109,7 @@ export class ResearcherService {
             searchQueries: plan.queries,
             format: finalFormat as any,
             language: finalLanguage,
+            requestedQuantity: plan.requestedQuantity,
             outputType: finalOutputType as any,
             sources,
             intent,
@@ -160,7 +161,14 @@ export class ResearcherService {
                 messages: [
                     { 
                         role: 'system', 
-                        content: 'You are a deep-research query architect. Given a partial or full topic, generate 5 diverse, highly specific, and distinct research angles or improved queries. Avoid generic repeats. Return ONLY a JSON array of strings.' 
+                        content: `You are a Live AI Search Suggestion Engine. Generate 5 smart completions instantly. 
+                        
+                        RULES:
+                        1. Follow the user's intent and previous words.
+                        2. Keep suggestions short and clickable.
+                        3. Prioritize: videos, articles, research papers, guides, tutorials, PDFs, case studies.
+                        
+                        Return ONLY a JSON array of strings.` 
                     },
                     { role: 'user', content: `Prompt: "${prompt}"` }
                 ],

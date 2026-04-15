@@ -19,7 +19,7 @@ export class CriticService {
 
         // 1. Update status to CRITIQUING and push to browser immediately
         await jobRepo.updateJobStatus(dbJobId, EJobStatus.CRITIQUING);
-        publishJobEvent(jobId, { type: 'status', status: 'critiquing' });
+        publishJobEvent(jobId, { type: 'status', status: 'critiquing', thought: 'summary ' });
 
         if (!rawResults || rawResults.length === 0) {
             await jobRepo.updateJobStatus(dbJobId, EJobStatus.FAILED, 'No results found to evaluate');
@@ -40,6 +40,7 @@ export class CriticService {
             outputFormat || 'mixed',
             outputType  || 'list',
             language    || 'English',
+            job.data.requestedQuantity || null,
             filtered,
         );
 
