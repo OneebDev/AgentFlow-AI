@@ -21,6 +21,7 @@ type ChatMessage = {
     thought?: string;
     results?: any; // the actual research results
     error?: string;
+    isBusinessStrategy?: boolean;
 };
 
 type ChatSession = {
@@ -216,8 +217,27 @@ export default function Home() {
         }, 100);
 
         try {
-            const data = await submitResearch(query, format, language, outputType);
+            // Context/Memory Implementation: Map existing messages to history (Filter out empty)
+            const history = messages
+                .map(m => ({
+                    role: m.role === 'agent' ? 'agent' : 'user',
+                    content: (m.role === 'user' ? m.content : (m.results?.summary || m.thought)) || ''
+                }))
+                .filter(m => m.content.trim().length > 0);
+
+            const data = await submitResearch(query, format, language, outputType, 'basic', history);
             const jobId = data.jobId;
+
+            if (data.isClarification) {
+                updateAgentMessage(targetSessionId, agentMsgId, { 
+                    status: 'completed', 
+                    thought: data.status,
+                    content: data.message,
+                    jobId
+                });
+                return;
+            }
+
             updateAgentMessage(targetSessionId, agentMsgId, { jobId });
 
             // Open SSE
@@ -227,7 +247,11 @@ export default function Home() {
             es.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'status') {
-                    updateAgentMessage(targetSessionId, agentMsgId, { status: msg.status, thought: msg.thought });
+                    updateAgentMessage(targetSessionId, agentMsgId, { 
+                        status: msg.status, 
+                        thought: msg.thought,
+                        isBusinessStrategy: msg.isBusinessStrategy 
+                    });
                 } else if (msg.type === 'partial_results') {
                     // Append partial results to existing rankedList (heuristically)
                     setSessions(prev => prev.map(s => {
@@ -281,22 +305,73 @@ export default function Home() {
         );
     };
 
-    const renderResults = (results: any) => {
+    const renderResults = (results: any, isBusinessStrategy: boolean = false) => {
         if (!results) return null;
         
         return (
             <div className="space-y-6 mt-4 w-full">
                 {/* Summary Box */}
                 {results.summary && (
-                    <div className="bg-gray-800/80 border border-white/10 rounded-2xl p-6 text-gray-200 leading-relaxed shadow-xl">
-                        <div className="flex items-center space-x-2 text-brand-primary mb-3">
-                            <Sparkles size={18} />
-                            <h3 className="font-bold text-lg text-white">Executive Summary</h3>
+                    <div className="bg-gray-800/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 text-gray-200 leading-relaxed shadow-2xl relative overflow-hidden group">
+                        {/* Background subtle glow */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-32 -mt-32 transition-colors group-hover:bg-brand-primary/10" />
+                        
+                        <div className="flex items-center justify-between mb-6 relative">
+                            <div className="flex items-center space-x-3 text-brand-primary">
+                                <Sparkles size={22} className="animate-pulse" />
+                                <h3 className="font-extrabold text-xl tracking-tight text-white">
+                                    {isBusinessStrategy ? 'Strategic Intelligence' : 'Executive Summary'}
+                                </h3>
+                            </div>
+                            {isBusinessStrategy && (
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 rounded-full">
+                                    Strategic Analysis
+                                </span>
+                            )}
                         </div>
-                        <div className="prose prose-invert max-w-none text-sm text-gray-300">
-                            {results.summary.split('\n').map((para: string, i: number) => (
-                                <p key={i} className="mb-2">{para}</p>
-                            ))}
+                        
+                        <div className="prose prose-invert max-w-none relative">
+                            {results.summary.split('\n').map((line: string, i: number) => {
+                                const isHeader = line.includes(':') && line.length < 50 && !line.includes('http');
+                                const renderTextWithLinks = (text: string) => {
+                                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                    const parts = text.split(urlRegex);
+                                    return parts.map((part, index) => {
+                                        if (part.match(urlRegex)) {
+                                            return (
+                                                <a 
+                                                    key={index} 
+                                                    href={part} 
+                                                    target="_blank" 
+                                                    rel="noreferrer" 
+                                                    className="underline decoration-brand-primary decoration-2 underline-offset-4 hover:text-brand-primary transition-colors inline-flex items-center gap-1 group/link"
+                                                >
+                                                    {part.replace(/(^\w+:|^)\/\//, '').split('/')[0]}
+                                                    <ExternalLink size={12} className="opacity-50 group-hover/link:opacity-100" />
+                                                </a>
+                                            );
+                                        }
+                                        return part;
+                                    });
+                                };
+
+                                if (isHeader) {
+                                    return (
+                                        <h4 key={i} className="text-brand-primary font-bold text-sm uppercase tracking-wider mt-6 mb-2 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(var(--brand-primary),0.8)]" />
+                                            {line.replace(':', '')}
+                                        </h4>
+                                    );
+                                }
+                                if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+                                    return <li key={i} className="text-gray-300 text-[15px] mb-1 list-none flex gap-2 pl-2">
+                                        <span className="text-brand-primary opacity-50">•</span>
+                                        <span className="flex-1">{renderTextWithLinks(line.replace(/^[-•]\s*/, ''))}</span>
+                                    </li>;
+                                }
+                                if (!line.trim()) return <div key={i} className="h-2" />;
+                                return <p key={i} className="text-gray-300 text-[15px] leading-[1.7] mb-3">{renderTextWithLinks(line)}</p>;
+                            })}
                         </div>
                     </div>
                 )}
@@ -318,8 +393,12 @@ export default function Home() {
                                         <span className="text-xs font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded-md">Source {i+1}</span>
                                         <ExternalLink size={14} className="text-gray-500 group-hover:text-brand-primary transition-colors" />
                                     </div>
-                                    <h5 className="font-semibold text-white text-sm line-clamp-2 mb-2 group-hover:text-brand-primary">{item.title}</h5>
-                                    <p className="text-xs text-gray-400 line-clamp-3 mt-auto">{item.description}</p>
+                                    <h5 className="font-semibold text-white text-sm line-clamp-2 mb-2 group-hover:text-brand-primary">
+                                        {item.title || 'Research Resource'}
+                                    </h5>
+                                    <p className="text-xs text-gray-400 line-clamp-3 mt-auto">
+                                        {item.description || item.url || 'Access direct source documentation for more details.'}
+                                    </p>
                                 </a>
                             ))}
                         </div>
@@ -439,7 +518,7 @@ export default function Home() {
                                         {/* Avatar */}
                                         <div className="flex-shrink-0 mt-1">
                                             {msg.role === 'user' ? (
-                                                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-bold text-xs">U</div>
+                                                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-bold text-xs text-white">U</div>
                                             ) : (
                                                 <div className="w-8 h-8 rounded-full brand-gradient flex items-center justify-center shadow-lg shadow-brand-primary/20">
                                                     <Play size={12} fill="white" className="ml-0.5" />
@@ -450,7 +529,7 @@ export default function Home() {
                                         {/* Content */}
                                         <div className="flex-1 overflow-hidden">
                                             {msg.role === 'user' ? (
-                                                <div className="text-gray-100 text-lg">{msg.content}</div>
+                                                <div className="text-gray-100 text-lg leading-snug">{msg.content}</div>
                                             ) : (
                                                 <div className="flex flex-col space-y-3">
                                                     {msg.status && msg.status !== 'completed' && renderAgentLoader(msg.status, msg.thought)}
@@ -461,7 +540,7 @@ export default function Home() {
                                                         </div>
                                                     )}
 
-                                                    {(msg.results?.summary || msg.results?.rankedList?.length > 0) && renderResults(msg.results)}
+                                                    {(msg.results?.summary || msg.results?.rankedList?.length > 0) && renderResults(msg.results, msg.isBusinessStrategy)}
                                                 </div>
                                             )}
                                         </div>

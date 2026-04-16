@@ -25,13 +25,14 @@ export type TResearchFormat = 'articles' | 'videos' | 'products' | 'news';
 export type TOutputType    = 'summary'  | 'list';
 
 export const submitResearch = async (
-    topic:      string,
-    format?:    TResearchFormat | null,
-    language?:  string | null,
+    topic:       string,
+    format?:     TResearchFormat | null,
+    language?:   string | null,
     outputType?: TOutputType | null,
-    depth:      string          = 'basic',
+    depth:       string          = 'basic',
+    history:     any[]           = []
 ) => {
-    const { data } = await api.post('/researcher', { topic, format, language, outputType, depth });
+    const { data } = await api.post('/researcher', { topic, format, language, outputType, depth, history });
     return data.data;
 };
 

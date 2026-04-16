@@ -1,6 +1,11 @@
 export type TResearchFormat = 'articles' | 'videos' | 'products' | 'news';
 export type TOutputType = 'summary' | 'list';
 
+export interface IHistoryMessage {
+    role: 'user' | 'agent';
+    content: string;
+}
+
 export interface IResearchRequest {
     topic: string;
     format?: TResearchFormat;
@@ -8,6 +13,7 @@ export interface IResearchRequest {
     outputType?: TOutputType;
     depth?: 'basic' | 'detailed';
     options?: Record<string, any>;
+    history?: IHistoryMessage[];
 }
 
 export interface IClarificationResponse {

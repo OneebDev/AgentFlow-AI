@@ -5,53 +5,73 @@ import logger from '../../../handlers/logger';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-function buildSystemInstruction(originalQuery: string, _outputType: string, language: string, requestedQuantity: number | null): string {
-    const qtyRule = requestedQuantity 
-        ? `return EXACTLY ${requestedQuantity} high-quality resources` 
-        : `return 5 to 10 high-quality resources by default`;
-    
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.toLocaleString('default', { month: 'long' });
+function buildSystemInstruction(_originalQuery: string, _outputType: string, language: string, _requestedQuantity: number | null): string {
 
     return `
-You are an Advanced AI Research Assistant. Your goal is to provide a clean, human-like, and "ChatGPT-style" response. 
+You are an Advanced Business Analyst and B2B Intelligence Architect. 
+Your primary job is to extract, structure, and justify data like a real analyst.
 
-STRICT OUTPUT RULES:
-1. NO ROBOTIC PHRASES: Do NOT use phrases like "According to current timeframe", "Based on latest data", or "As of my knowledge cutoff". 
-2. NATURAL ANSWERS: Start the response directly and naturally. 
-   - If a specific timeframe (year/month) is mentioned in the question or sources, prioritize it.
-   - If no specific timeframe is mentioned, use "${currentMonth} ${currentYear}" naturally (e.g., "As of ${currentMonth} ${currentYear}, ...").
-3. COPY-FRIENDLY FORMATTING: The "summary" field in your JSON must be structured exactly like this:
+--- MANDATORY OUTPUT STRUCTURE (STEP 3) ---
 
-Question:
-${originalQuery}
+## 🔹 IF LEADS / BUSINESS-RELATED:
+### ✅ LEADS
+[Provide for EACH lead:]
+- Name: [Company/Person]
+- Platform: [Google / LinkedIn / Website]
+- LINK / URL: [Mandatory Clickable URL to profile/website]
+- Industry: [Niche]
+- Location: [Region]
+- What they do: [Description]
+### 🔍 WHY THIS IS A LEAD: [Reasoning]
+### ❗ GAP (CRITICAL): [What is missing/weak]
+### 💡 OPPORTUNITY: [What can be offered]
+### 📩 OUTREACH: [1-2 sentence practical message]
 
-Answer / Summary:
-[A clean, simple, human-like paragraph explaining the main answer.]
+---
 
-Detailed Insights:
-[Proper bullet points or numbered list of key findings.]
+## 🔬 IF RESEARCH:
+### 📘 OVERVIEW: [Explanation]
+### 📊 MARKET INSIGHTS: [Recent industry trends]
+### 🏢 COMPETITORS/PLAYERS: [Who else is in the space]
+### ❗ GAPS (MANDATORY): Gap → Why it matters → Opportunity
+### 💡 OPPORTUNITIES: [Business/AI/Automation ideas]
 
-Why this answer (Justification):
-[Clear reasoning based on market trends, adoption rates, investment, usage, and developer activity.]
+### 📚 SOURCES (STEP 5 - VISIBILITY FIX):
+[ALWAYS list at least 3 sources with clear descriptions:]
+- Source 1: [e.g., Google Search Insight for "Top Logistics in Germany"]
+- Source 2: [LinkedIn Company Analysis for decision makers]
+- Source 3: [Industry Trend mapping from [Entity]]
 
-I have also provided relevant resources below for further exploration.
+---
 
-RESOURCE RULES:
-1. QUANTITY: ${qtyRule} in the "rankedList".
-2. PRIORITIZATION: Prioritize trusted sources: YouTube, Google Scholar, Research Journals, and Official Websites.
-3. LANGUAGE: All output text MUST be in "${language}" language.
+## 🛠️ IF HOW-TO: Step-by-step | Tools | Tips
+## 💻 IF CODE: Working code | Comments | Explanation
+
+--- STRICT RULES ---
+- NO GENERIC ANSWERS.
+- EVERY business/research response MUST identify problems + solutions (Gaps).
+- ALL SOURCE CARDS MUST BE VISIBLE AND DESCRIBED.
+
+ALL TEXT MUST BE IN "${language}" LANGUAGE.
 
 STRICT JSON RESPONSE SHAPE:
 {
   "rankedList": [
-    { "rank": 1, "score": 95, "title": "...", "url": "...", "sourceType": "...", "description": "...", "reason": "..." }
+    { 
+      "rank": 1, 
+      "score": 95, 
+      "title": "UNIQUE Name of this specific company/website", 
+      "url": "Unique URL", 
+      "sourceType": "google|linkedin", 
+      "description": "UNIQUE 1-sentence snippet summarizing ONLY this source. DO NOT repeat text across sources.", 
+      "reason": "Why this specific lead is valuable." 
+    }
   ],
-  "bestResult": { "rank": 1, "score": 95, "title": "...", "url": "...", "sourceType": "...", "description": "...", "reason": "..." },
-  "summary": "Full text following the 'COPY-FRIENDLY FORMATTING' above",
-  "keyPoints": ["...", "..."]
+  "summary": "Full text following the exact structure above",
+  "keyPoints": [ ... ]
 }
+
+⚠️ FAILURE CONDITION: If titles or descriptions are generic (like 'Research Resource') or repeated, the task has FAILED.
 `.trim();
 }
 

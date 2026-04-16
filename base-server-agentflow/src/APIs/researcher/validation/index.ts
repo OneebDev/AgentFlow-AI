@@ -7,4 +7,8 @@ export const startResearchSchema = Joi.object({
     outputType: Joi.string().valid('summary', 'list').allow(null).optional(),
     depth: Joi.string().valid('basic', 'detailed').default('basic'),
     options: Joi.object().optional(),
+    history: Joi.array().items(Joi.object({
+        role: Joi.string().valid('user', 'agent').required(),
+        content: Joi.string().allow('').required()
+    })).optional(),
 });

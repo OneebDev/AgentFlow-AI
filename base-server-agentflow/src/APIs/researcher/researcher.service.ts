@@ -53,15 +53,30 @@ function resolveFormatConfig(format: TResearchFormat): {
 
 export class ResearcherService {
     async initiateResearch(data: IResearchRequest): Promise<IResearchResponse> {
-        // 1. Autonomous Planning (Agent analyzes the prompt itself)
-        const plan = await planResearch(data.topic);
+        // 1. Autonomous Planning (Agent analyzes history + current prompt)
+        const plan = await planResearch(data.topic, data.history);
 
         // Use AI detected values unless frontend explicitly overrides (optional)
         const finalFormat     = data.format     || plan.format;
         const finalLanguage   = data.language   || plan.language;
         const finalOutputType = data.outputType || plan.outputType;
 
-        const { sources, outputFormat, intent } = resolveFormatConfig(finalFormat as any);
+        const { sources: initialSources, outputFormat, intent } = resolveFormatConfig(finalFormat as any);
+        let sources = [...initialSources];
+
+        // Ensure Tavily is used for Research/Learning formats
+        if (finalFormat === 'learning' || finalFormat === 'articles') {
+            if (!sources.includes('tavily')) sources.push('tavily');
+        }
+
+        // Add lead-gen specialized sources if BI mode is detected
+        if (plan.isBusinessStrategy) {
+            if (!sources.includes('scraper')) sources.push('scraper');
+            if (!sources.includes('google'))  sources.push('google');
+        }
+
+        // Fallback: If for some reason sources are empty, use google (SerpAPI)
+        if (sources.length === 0) sources = ['google'];
 
         // 2. Create Job in MongoDB
         const job = await jobRepo.createJob({
@@ -85,21 +100,24 @@ export class ResearcherService {
         publishJobEvent(jobId, { 
             type: 'status', 
             status: 'researching',
-            thought: plan.thought 
+            thought: plan.thought,
+            isBusinessStrategy: plan.isBusinessStrategy 
         });
 
-        if (plan.directAnswer) {
-            // FAST-TRACK: Instantly return Chatbot-style answer!
+        if (plan.clarificationNeeded || plan.directAnswer) {
+            const responseText = plan.clarificationQuestion || plan.directAnswer;
+
+            // Instantly return Chatbot-style answer or Clarification question
             await jobRepo.updateJobStatus(jobId, EJobStatus.COMPLETED);
             const finalResult = await finalRepo.createFinalResult(jobId, {
-                summary: plan.directAnswer,
+                summary: responseText,
                 rankedList: [],
                 bestResult: null
             });
             setTimeout(() => {
                 publishJobEvent(jobId, { type: 'completed', results: finalResult });
-            }, 500); // Small delay to let UI attach SSE
-            return { jobId, status: 'completed' as any, message: 'Direct answer' };
+            }, 500);
+            return { jobId, status: 'completed' as any, message: responseText };
         }
 
         // 4. Enqueue in BullMQ with strategic queries for deep web research
