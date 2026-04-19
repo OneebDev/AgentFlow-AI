@@ -1,33 +1,35 @@
 import { Job } from 'bullmq';
 import logger from '../../handlers/logger';
-import jobRepo from '../_shared/repo/agent-job.repository';
-import crawlRepo from '../_shared/repo/crawl-result.repository';
-import { EJobStatus, EQueueName, IAgentJobPayload } from '../_shared/types/agents.interface';
-import { fetchGoogle } from './fetchers/google';
-import { fetchYouTube } from './fetchers/youtube';
-import { scrapeUrls } from './fetchers/scraper';
-import { fetchTavily } from './fetchers/tavily';
-import { fetchSerper } from './fetchers/serper';
-import { fetchBrave } from './fetchers/brave';
-import { createQueue } from '../../utils/queue';
 import { publishJobEvent } from '../../utils/pubsub';
+import { createQueue } from '../../utils/queue';
+import crawlRepo from '../_shared/repo/crawl-result.repository';
+import jobRepo from '../_shared/repo/agent-job.repository';
+import {
+    EJobStatus,
+    EQueueName,
+    IAgentJobPayload,
+    ICrawlFetchResult,
+    TCrawlResult,
+    TSourceType,
+} from '../_shared/types/agents.interface';
+import { fetchBrave } from './fetchers/brave';
+import { fetchGoogle } from './fetchers/google';
+import { scrapeUrls } from './fetchers/scraper';
+import { fetchSerper } from './fetchers/serper';
+import { fetchTavily } from './fetchers/tavily';
+import { fetchYouTube } from './fetchers/youtube';
 
 const criticQueue = createQueue(EQueueName.CRITIC);
 
-/**
- * Run a primary fetcher. If it returns 0 results (API key missing, network
- * failure, or empty response), automatically retry with Brave Search.
- * This matches the spec: "IF API fails → fallback to Brave Search API"
- */
 async function fetchWithFallback(
-    label:   string,
-    primary: () => Promise<any[]>,
-    queries: string[],
-): Promise<{ type: string; results: any[] }> {
+    label: TSourceType,
+    primary: () => Promise<TCrawlResult[]>,
+    queries: string[]
+): Promise<ICrawlFetchResult> {
     let results = await primary();
 
     if (results.length === 0) {
-        logger.warn(`${label} returned 0 results — falling back to Brave`, { meta: { queries } });
+        logger.warn(`${label} returned 0 results - falling back to Brave`, { meta: { queries } });
         results = await fetchBrave(queries);
         return { type: 'brave', results };
     }
@@ -36,123 +38,85 @@ async function fetchWithFallback(
 }
 
 export class CrawlerService {
-    /**
-     * Main processor for crawl jobs.
-     *
-     * Routing rules (matches spec exactly):
-     *   articles / learning  → Tavily  → fallback: Brave  + scrape top URLs
-     *   news                 → Serper (news endpoint) → fallback: Brave
-     *   products             → Serper (search)        → fallback: Brave
-     *   videos               → YouTube API (no fallback — format-specific)
-     *   general / default    → Serper (search)        → fallback: Brave
-     */
-    async processCrawlJob(job: Job<IAgentJobPayload>): Promise<any> {
+    async processCrawlJob(job: Job<IAgentJobPayload>): Promise<{ jobId: string; resultCount: number }> {
         const { jobId, query, searchQueries, sources, format } = job.data;
-        const dbJobId = (job.data as any)._id || jobId;
+        const dbJobId = job.data._id || jobId;
 
-        logger.info(`Crawler starting`, { meta: { jobId, format, sources } });
+        logger.info('Crawler starting', { meta: { jobId, format, sources } });
 
-        // 1. Update status + push SSE event
         await jobRepo.updateJobStatus(dbJobId, EJobStatus.CRAWLING);
         publishJobEvent(jobId, { type: 'status', status: 'crawling' });
 
-        const queries    = searchQueries?.length ? searchQueries : [query];
-        const fetchTasks: Promise<{ type: string; results: any[] }>[] = [];
-        
-        // Calculate dynamic fetch limit based on requested quantity
-        // If 100 results requested and 3 queries, we need ~34 per query.
+        const queries = searchQueries?.length ? searchQueries : [query];
+        const fetchTasks: Array<Promise<ICrawlFetchResult>> = [];
         const reqQty = job.data.requestedQuantity ?? 10;
-        const perQueryLimit = Math.max(5, Math.ceil((reqQty * 1.5) / queries.length)); // 50% buffer
+        const perQueryLimit = Math.max(5, Math.ceil((reqQty * 1.5) / queries.length));
 
-        // ── Source routing ────────────────────────────────────────────────────
         for (const source of sources ?? []) {
             switch (source) {
-                // Learning / articles → Tavily (deep search)
                 case 'tavily':
-                    fetchTasks.push(
-                        fetchWithFallback('tavily', () => fetchTavily(queries, perQueryLimit), queries),
-                    );
+                    fetchTasks.push(fetchWithFallback('tavily', () => fetchTavily(queries, perQueryLimit), queries));
                     break;
-
-                // Deep scraping of top article URLs
-                case 'scraper': {
+                case 'scraper':
                     fetchTasks.push(
                         (async () => {
-                            // Get URLs from Tavily if available, otherwise Google
-                            let seedResults: any[] = await fetchTavily(queries.slice(0, 2), 3);
-                            if (!seedResults.length) {
+                            let seedResults: TCrawlResult[] = await fetchTavily(queries.slice(0, 2), 3);
+                            if (seedResults.length === 0) {
                                 seedResults = await fetchGoogle(queries.slice(0, 2), 3);
                             }
-                            const urls = seedResults.map((r) => r.url).filter(Boolean).slice(0, 6);
+                            const urls = seedResults
+                                .map((result) => result.url)
+                                .filter((url): url is string => url.length > 0)
+                                .slice(0, 6);
                             const scraped = await scrapeUrls(urls);
                             return { type: 'scraper', results: scraped };
-                        })(),
+                        })()
                     );
                     break;
-                }
-
-                // General / products → Serper organic
                 case 'serper':
-                    fetchTasks.push(
-                        fetchWithFallback('serper', () => fetchSerper(queries, 'search', perQueryLimit), queries),
-                    );
+                    fetchTasks.push(fetchWithFallback('serper', () => fetchSerper(queries, 'search', perQueryLimit), queries));
                     break;
-
-                // News → Serper news endpoint
                 case 'serper-news':
                     fetchTasks.push(
-                        fetchWithFallback('serper-news', () => fetchSerper(queries, 'news', perQueryLimit), queries),
+                        fetchWithFallback('serper-news', () => fetchSerper(queries, 'news', perQueryLimit), queries)
                     );
                     break;
-
-                // Videos → YouTube only
                 case 'youtube':
-                    fetchTasks.push(
-                        fetchYouTube(queries, perQueryLimit).then((r) => ({ type: 'youtube', results: r })),
-                    );
+                    fetchTasks.push(fetchYouTube(queries, perQueryLimit).then((results) => ({ type: 'youtube', results })));
                     break;
-
-                // Explicit Brave (or as direct source)
                 case 'brave':
-                    fetchTasks.push(
-                        fetchBrave(queries).then((r) => ({ type: 'brave', results: r })),
-                    );
+                    fetchTasks.push(fetchBrave(queries).then((results) => ({ type: 'brave', results })));
                     break;
-
-                // Legacy Google (SerpAPI) — kept for backward compat
                 case 'google':
-                    fetchTasks.push(
-                        fetchWithFallback('google', () => fetchGoogle(queries), queries),
-                    );
+                    fetchTasks.push(fetchWithFallback('google', () => fetchGoogle(queries), queries));
                     break;
-
-                default:
-                    logger.warn(`Unknown source "${source}" — skipping`);
+                default: {
+                    const unexpectedSource = String(source);
+                    logger.warn(`Unknown source "${unexpectedSource}" - skipping`);
+                }
             }
         }
 
-        // ── Execute all fetch tasks in parallel ───────────────────────────────
-        const settled    = await Promise.allSettled(fetchTasks);
-        const rawResults: any[] = [];
+        const settled = await Promise.allSettled(fetchTasks);
+        const rawResults: TCrawlResult[] = [];
 
         for (const outcome of settled) {
-            if (outcome.status === 'fulfilled' && outcome.value.results.length) {
+            if (outcome.status === 'fulfilled' && outcome.value.results.length > 0) {
                 const { type, results } = outcome.value;
                 rawResults.push(...results);
                 await crawlRepo.createCrawlResult(dbJobId, type, results);
-                
-                // Stream partial results to UI for immediate feedback
                 publishJobEvent(jobId, { type: 'partial_results', results });
-            } else if (outcome.status === 'rejected') {
-                logger.error('Fetcher task threw unexpectedly', {
-                    meta: { err: outcome.reason, jobId },
-                });
+                continue;
+            }
+
+            if (outcome.status === 'rejected') {
+                const errorMessage = outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason);
+                logger.error('Fetcher task threw unexpectedly', { meta: { err: errorMessage, jobId } });
             }
         }
 
-        logger.info(`Crawl complete`, { meta: { jobId, totalResults: rawResults.length } });
+        logger.info('Crawl complete', { meta: { jobId, totalResults: rawResults.length } });
 
-        // 4. Enqueue Critic job with full payload
         await criticQueue.add(`critic:${jobId}`, {
             ...job.data,
             rawResults,

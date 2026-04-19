@@ -1,8 +1,8 @@
 import agentJobModel from '../models/agent-job.model';
-import { EJobStatus } from '../types/agents.interface';
+import { EJobStatus, IAgentJobMetadata, IAgentJobRecord } from '../types/agents.interface';
 
 export default {
-    createJob: (payload: any) => {
+    createJob: (payload: IAgentJobRecord) => {
         return agentJobModel.create(payload);
     },
     findJobById: (id: string) => {
@@ -15,7 +15,7 @@ export default {
             { new: true }
         );
     },
-    updateJobMetadata: (id: string, metadata: any) => {
+    updateJobMetadata: (id: string, metadata: IAgentJobMetadata) => {
         return agentJobModel.findByIdAndUpdate(
             id,
             { $set: { metadata } },

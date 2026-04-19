@@ -7,10 +7,13 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import logger from '../../../handlers/logger';
 import cache from '../../../utils/cache';
+import { ISerperResult } from '../../_shared/types/agents.interface';
 
-axiosRetry(axios as any, {
+const http = axios.create();
+
+axiosRetry(http, {
     retries: parseInt(process.env.SCRAPER_MAX_RETRIES || '3', 10),
-    retryDelay: axiosRetry.exponentialDelay,
+    retryDelay: (...args) => axiosRetry.exponentialDelay(...args),
     retryCondition: (err) =>
         axiosRetry.isNetworkOrIdempotentRequestError(err) || err.response?.status === 429,
 });
@@ -19,15 +22,6 @@ const SERPER_BASE = 'https://google.serper.dev';
 const CACHE_TTL   = 1800;
 
 export type TSerperEndpoint = 'search' | 'news';
-
-export interface ISerperResult {
-    sourceType: 'serper' | 'serper-news';
-    title:       string;
-    url:         string;
-    description: string;
-    position:    number;
-    query:       string;
-}
 
 export async function fetchSerper(
     queries:     string[],
@@ -55,7 +49,7 @@ export async function fetchSerper(
         }
 
         try {
-            const response = await axios.post(
+            const response = await http.post<unknown>(
                 endpoint,
                 { q, num: maxPerQuery },
                 {
@@ -64,16 +58,14 @@ export async function fetchSerper(
                 },
             );
 
-            const raw = type === 'news'
-                ? (response.data.news    || [])
-                : (response.data.organic || []);
+            const raw = extractSerperResults(response.data, type);
 
-            const items: ISerperResult[] = raw.slice(0, maxPerQuery).map((r: any, i: number) => ({
-                sourceType:  sourceType as ISerperResult['sourceType'],
-                title:       r.title       || '',
-                url:         r.link        || '',
-                description: r.snippet     || r.description || '',
-                position:    r.position    ?? i + 1,
+            const items: ISerperResult[] = raw.slice(0, maxPerQuery).map((r, i) => ({
+                sourceType,
+                title:       r.title,
+                url:         r.link,
+                description: r.description,
+                position:    r.position ?? i + 1,
                 query:       q,
             }));
 
@@ -86,4 +78,34 @@ export async function fetchSerper(
     }
 
     return results;
+}
+
+function extractSerperResults(
+    data: unknown,
+    type: TSerperEndpoint
+): Array<{ title: string; link: string; description: string; position?: number }> {
+    if (!data || typeof data !== 'object') {
+        return [];
+    }
+
+    const key = type === 'news' ? 'news' : 'organic';
+    const raw = (data as Record<string, unknown>)[key];
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+
+    return raw.map((item) => {
+        const entry = item as Record<string, unknown>;
+        return {
+            title: typeof entry.title === 'string' ? entry.title : '',
+            link: typeof entry.link === 'string' ? entry.link : '',
+            description:
+                typeof entry.snippet === 'string'
+                    ? entry.snippet
+                    : typeof entry.description === 'string'
+                      ? entry.description
+                      : '',
+            position: typeof entry.position === 'number' ? entry.position : undefined,
+        };
+    });
 }

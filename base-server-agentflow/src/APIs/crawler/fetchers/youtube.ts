@@ -2,28 +2,18 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import logger from '../../../handlers/logger';
 import cache from '../../../utils/cache';
+import { IYouTubeResult } from '../../_shared/types/agents.interface';
 
-// Configure axios retry
-axiosRetry(axios as any, {
+const http = axios.create();
+
+axiosRetry(http, {
     retries: parseInt(process.env.SCRAPER_MAX_RETRIES || '3', 10),
-    retryDelay: axiosRetry.exponentialDelay,
+    retryDelay: (...args) => axiosRetry.exponentialDelay(...args),
     retryCondition: (err) => axiosRetry.isNetworkOrIdempotentRequestError(err) || err.response?.status === 429,
 });
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const CACHE_TTL = 1800; // 30 minutes
-
-export interface IYouTubeResult {
-    sourceType: string;
-    id: string;
-    title: string;
-    description: string;
-    channelTitle: string;
-    publishedAt: string;
-    thumbnailUrl?: string;
-    url: string;
-    query: string;
-}
 
 /**
  * YouTube Fetcher
@@ -48,7 +38,7 @@ export async function fetchYouTube(queries: string[], maxPerQuery: number = 5): 
         }
 
         try {
-            const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+            const response = await http.get<unknown>(`${YOUTUBE_API_BASE}/search`, {
                 params: {
                     part: 'snippet',
                     q,
@@ -60,15 +50,15 @@ export async function fetchYouTube(queries: string[], maxPerQuery: number = 5): 
                 timeout: parseInt(process.env.SCRAPER_TIMEOUT_MS || '10000', 10),
             });
 
-            const items: IYouTubeResult[] = (response.data.items || []).map((item: any) => ({
+            const items: IYouTubeResult[] = extractYouTubeItems(response.data).map((item) => ({
                 sourceType: 'youtube',
-                id: item.id.videoId,
-                title: item.snippet.title,
-                description: item.snippet.description,
-                channelTitle: item.snippet.channelTitle,
-                publishedAt: item.snippet.publishedAt,
-                thumbnailUrl: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
-                url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                channelTitle: item.channelTitle,
+                publishedAt: item.publishedAt,
+                thumbnailUrl: item.thumbnailUrl,
+                url: `https://www.youtube.com/watch?v=${item.id}`,
                 query: q,
             }));
 
@@ -81,4 +71,50 @@ export async function fetchYouTube(queries: string[], maxPerQuery: number = 5): 
     }
 
     return results;
+}
+
+function extractYouTubeItems(
+    data: unknown
+): Array<{
+    id: string;
+    title: string;
+    description: string;
+    channelTitle: string;
+    publishedAt: string;
+    thumbnailUrl?: string;
+}> {
+    if (!data || typeof data !== 'object' || !('items' in data)) {
+        return [];
+    }
+
+    const raw = (data as { items?: unknown }).items;
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+
+    return raw
+        .map((item) => {
+            const entry = item as Record<string, unknown>;
+            const id = entry.id as Record<string, unknown> | undefined;
+            const snippet = entry.snippet as Record<string, unknown> | undefined;
+            const thumbnails = snippet?.thumbnails as Record<string, unknown> | undefined;
+            const highThumbnail = thumbnails?.high as Record<string, unknown> | undefined;
+            const defaultThumbnail = thumbnails?.default as Record<string, unknown> | undefined;
+            const videoId = typeof id?.videoId === 'string' ? id.videoId : '';
+
+            return {
+                id: videoId,
+                title: typeof snippet?.title === 'string' ? snippet.title : '',
+                description: typeof snippet?.description === 'string' ? snippet.description : '',
+                channelTitle: typeof snippet?.channelTitle === 'string' ? snippet.channelTitle : '',
+                publishedAt: typeof snippet?.publishedAt === 'string' ? snippet.publishedAt : '',
+                thumbnailUrl:
+                    typeof highThumbnail?.url === 'string'
+                        ? highThumbnail.url
+                        : typeof defaultThumbnail?.url === 'string'
+                          ? defaultThumbnail.url
+                          : undefined,
+            };
+        })
+        .filter((item) => item.id.length > 0);
 }

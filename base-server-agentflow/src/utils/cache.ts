@@ -33,7 +33,7 @@ export default {
         }
     },
 
-    set: async (key: string, value: any, ttl: number = DEFAULT_TTL_SECONDS): Promise<void> => {
+    set: async <T>(key: string, value: T, ttl: number = DEFAULT_TTL_SECONDS): Promise<void> => {
         const serialised = typeof value === 'string' ? value : JSON.stringify(value);
         await getClient().setex(key, ttl, serialised);
     },

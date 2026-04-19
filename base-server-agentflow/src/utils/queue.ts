@@ -1,5 +1,6 @@
 import { Queue, Worker, QueueEvents, Job, DefaultJobOptions, WorkerOptions } from 'bullmq';
 import logger from '../handlers/logger';
+import { IAgentJobPayload } from '../APIs/_shared/types/agents.interface';
 
 const redisConnection = {
     host: process.env.REDIS_HOST || 'localhost',
@@ -35,9 +36,9 @@ export function createQueue(name: string): Queue {
  */
 export function createWorker(
     name: string,
-    processor: (job: Job) => Promise<any>,
+    processor: (job: Job<IAgentJobPayload>) => Promise<unknown>,
     options: Partial<WorkerOptions> = {}
-): Worker {
+): Worker<IAgentJobPayload> {
     const worker = new Worker(name, processor, {
         connection: redisConnection,
         concurrency: options.concurrency || 5,

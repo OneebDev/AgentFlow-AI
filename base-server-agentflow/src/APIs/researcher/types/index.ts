@@ -1,18 +1,27 @@
+import { IFinalResultData, IPlannerHistoryMessage } from '../../_shared/types/agents.interface';
+
 export type TResearchFormat = 'articles' | 'videos' | 'products' | 'news';
 export type TOutputType = 'summary' | 'list';
+export type TResearchDepth = 'basic' | 'detailed';
+export type TResearchStatus =
+    | 'pending'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'clarification_needed'
+    | 'researching'
+    | 'crawling'
+    | 'critiquing';
 
-export interface IHistoryMessage {
-    role: 'user' | 'agent';
-    content: string;
-}
+export type IHistoryMessage = IPlannerHistoryMessage;
 
 export interface IResearchRequest {
     topic: string;
     format?: TResearchFormat;
     language?: string;
     outputType?: TOutputType;
-    depth?: 'basic' | 'detailed';
-    options?: Record<string, any>;
+    depth?: TResearchDepth;
+    options?: Record<string, unknown>;
     history?: IHistoryMessage[];
 }
 
@@ -25,9 +34,11 @@ export interface IClarificationResponse {
 
 export interface IResearchResponse {
     jobId?: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed' | 'clarification_needed';
-    data?: any;
+    status: TResearchStatus;
+    data?: IFinalResultData | null;
     message?: string;
     missing?: string[];
     hint?: string;
+    mode?: import('../../_shared/types/agents.interface').TAssistantMode;
+    language?: string;
 }

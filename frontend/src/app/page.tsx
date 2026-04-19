@@ -1,7 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
-import { submitResearch, createJobStream, getSuggestions, type TResearchFormat, type TOutputType } from '@/lib/api';
+import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import {
+    createJobStream,
+    getSuggestions,
+    IHistoryMessage,
+    IResearchResults,
+    IRankedResult,
+    submitResearch,
+    TAssistantMode,
+    TOutputType,
+    TResearchFormat,
+    TStreamEvent,
+} from '@/lib/api';
 import {
     Search, Loader2, Play, CheckCircle2, AlertCircle,
     FileText, Video, ShoppingBag, Newspaper, ExternalLink,
@@ -19,9 +30,10 @@ type ChatMessage = {
     jobId?: string;
     status?: 'idle' | 'researching' | 'crawling' | 'critiquing' | 'completed' | 'failed';
     thought?: string;
-    results?: any; // the actual research results
+    results?: IResearchResults;
     error?: string;
     isBusinessStrategy?: boolean;
+    mode?: TAssistantMode;
 };
 
 type ChatSession = {
@@ -38,7 +50,7 @@ const FORMAT_OPTIONS = [
     { value: 'videos', label: 'Videos', icon: <Video size={13} /> },
     { value: 'news', label: 'News', icon: <Newspaper size={13} /> },
     { value: 'products', label: 'Products', icon: <ShoppingBag size={13} /> },
-];
+] as const satisfies ReadonlyArray<{ value: TResearchFormat; label: string; icon: ReactNode }>;
 
 const LANGUAGE_OPTIONS = [
     { value: 'English', label: 'English' },
@@ -63,13 +75,12 @@ export default function Home() {
 
     const [inputValue, setInputValue] = useState('');
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-    const [isTyping, setIsTyping] = useState(false);
-
     // Filters
     const [format, setFormat] = useState<TResearchFormat | null>(null);
     const [language, setLanguage] = useState<string | null>(null);
     const [outputType, setOutputType] = useState<TOutputType | null>(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const streamRef = useRef<EventSource | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +92,7 @@ export default function Home() {
         const saved = localStorage.getItem('agentflow_sessions');
         if (saved) {
             try {
-                setSessions(JSON.parse(saved));
+                setSessions(normalizeSessions(JSON.parse(saved) as ChatSession[]));
             } catch (e) {
                 console.error(e);
             }
@@ -94,8 +105,13 @@ export default function Home() {
 
     // Save to LocalStorage
     useEffect(() => {
-        if (isMounted && sessions.length > 0) {
-            localStorage.setItem('agentflow_sessions', JSON.stringify(sessions));
+        if (!isMounted) return;
+
+        const normalized = normalizeSessions(sessions);
+        if (normalized.length > 0) {
+            localStorage.setItem('agentflow_sessions', JSON.stringify(normalized));
+        } else {
+            localStorage.removeItem('agentflow_sessions');
         }
     }, [sessions, isMounted]);
 
@@ -104,8 +120,8 @@ export default function Home() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const currentSession = sessions.find(s => s.id === currentSessionId);
-    const messages = currentSession?.messages || [];
+    const currentSession = useMemo(() => sessions.find(s => s.id === currentSessionId), [sessions, currentSessionId]);
+    const messages = useMemo(() => currentSession?.messages || [], [currentSession]);
 
     useEffect(() => {
         scrollToBottom();
@@ -140,15 +156,14 @@ export default function Home() {
         suggestTimeoutRef.current = setTimeout(async () => {
             try {
                 if (!val.trim()) return; // Don't fetch for empty
-                setIsTyping(true);
                 const res = await getSuggestions(val);
                 // ONLY set if input is still the same and hasn't been cleared by handleSearch
-                setAiSuggestions(prev => val.trim() ? res : []);
+                setAiSuggestions(val.trim() ? res : []);
             } catch (err) {
                 console.error("Suggestion fetch failed", err);
                 setAiSuggestions([]);
             } finally {
-                setIsTyping(false);
+                return;
             }
         }, 200);
     };
@@ -164,7 +179,8 @@ export default function Home() {
     };
 
     const handleSearch = async (query: string = inputValue) => {
-        if (!query.trim()) return;
+        if (!query.trim() || isSubmitting) return;
+        setIsSubmitting(true);
         
         // STOP suggestions immediately on Enter
         if (suggestTimeoutRef.current) clearTimeout(suggestTimeoutRef.current);
@@ -180,7 +196,7 @@ export default function Home() {
             targetSessionId = Date.now().toString();
             setSessions(prev => [{
                 id: targetSessionId,
-                title: query.length > 30 ? query.substring(0, 30) + '...' : query,
+                title: buildSessionTitle(query),
                 messages: [],
                 createdAt: Date.now()
             }, ...prev]);
@@ -218,34 +234,38 @@ export default function Home() {
 
         try {
             // Context/Memory Implementation: Map existing messages to history (Filter out empty)
-            const history = messages
+            const history: IHistoryMessage[] = messages
                 .map(m => ({
-                    role: m.role === 'agent' ? 'agent' : 'user',
-                    content: (m.role === 'user' ? m.content : (m.results?.summary || m.thought)) || ''
+                    role: m.role,
+                    content: (
+                        m.role === 'user'
+                            ? m.content
+                            : (m.content || m.results?.summary || m.thought)
+                    ) || ''
                 }))
                 .filter(m => m.content.trim().length > 0);
 
             const data = await submitResearch(query, format, language, outputType, 'basic', history);
             const jobId = data.jobId;
 
-            if (data.isClarification) {
+            if (data.status === 'completed' && data.message) {
                 updateAgentMessage(targetSessionId, agentMsgId, { 
                     status: 'completed', 
                     thought: data.status,
                     content: data.message,
-                    jobId
+                    mode: data.mode
                 });
                 return;
             }
 
-            updateAgentMessage(targetSessionId, agentMsgId, { jobId });
+            updateAgentMessage(targetSessionId, agentMsgId, { jobId, mode: data.mode });
 
             // Open SSE
             const es = createJobStream(jobId);
             streamRef.current = es;
 
             es.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
+                const msg = JSON.parse(event.data) as TStreamEvent;
                 if (msg.type === 'status') {
                     updateAgentMessage(targetSessionId, agentMsgId, { 
                         status: msg.status, 
@@ -260,7 +280,7 @@ export default function Home() {
                             ...s,
                             messages: s.messages.map(m => {
                                 if (m.id !== agentMsgId) return m;
-                                const existingResults = m.results || { rankedList: [] };
+                                const existingResults: IResearchResults = m.results || { rankedList: [] };
                                 return {
                                     ...m,
                                     results: {
@@ -272,7 +292,13 @@ export default function Home() {
                         };
                     }));
                 } else if (msg.type === 'completed') {
-                    updateAgentMessage(targetSessionId, agentMsgId, { status: 'completed', results: msg.results, thought: 'Task completed!' });
+                    updateAgentMessage(targetSessionId, agentMsgId, {
+                        status: 'completed',
+                        results: msg.results ?? undefined,
+                        thought: 'Task completed!',
+                        content: resolveCompletedContent(msg.results),
+                        mode: msg.results?.contract?.mode
+                    });
                     es.close();
                 } else if (msg.type === 'failed') {
                     updateAgentMessage(targetSessionId, agentMsgId, { status: 'failed', error: msg.error || 'Failed' });
@@ -285,8 +311,13 @@ export default function Home() {
                 es.close();
             };
 
-        } catch (err: any) {
-             updateAgentMessage(targetSessionId, agentMsgId, { status: 'failed', error: err.message || 'Failed to submit.' });
+        } catch (err: unknown) {
+             updateAgentMessage(targetSessionId, agentMsgId, {
+                status: 'failed',
+                error: err instanceof Error ? err.message : 'Failed to submit.'
+             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -305,8 +336,43 @@ export default function Home() {
         );
     };
 
-    const renderResults = (results: any, isBusinessStrategy: boolean = false) => {
+    const renderResults = (
+        results: IResearchResults,
+        mode: TAssistantMode | undefined,
+        isBusinessStrategy: boolean = false
+    ) => {
         if (!results) return null;
+        const effectiveMode = mode || results.contract?.mode;
+
+        if (effectiveMode === 'casual_chat') {
+            return renderChatReply(results.summary || 'How can I help you today?');
+        }
+
+        if (effectiveMode === 'summary') {
+            return renderSummaryReply(results);
+        }
+
+        if (effectiveMode === 'coding') {
+            return renderCodeReply(results.summary || '');
+        }
+
+        if (effectiveMode === 'leads') {
+            return renderLeadsReply(results);
+        }
+
+        if (effectiveMode === 'resources') {
+            return renderResourcesReply(results);
+        }
+
+        if (
+            effectiveMode === 'learning' ||
+            effectiveMode === 'knowledge' ||
+            effectiveMode === 'comparison' ||
+            effectiveMode === 'planning' ||
+            effectiveMode === 'scraping'
+        ) {
+            return renderGuidedReply(results, effectiveMode);
+        }
         
         return (
             <div className="space-y-6 mt-4 w-full">
@@ -320,7 +386,7 @@ export default function Home() {
                             <div className="flex items-center space-x-3 text-brand-primary">
                                 <Sparkles size={22} className="animate-pulse" />
                                 <h3 className="font-extrabold text-xl tracking-tight text-white">
-                                    {isBusinessStrategy ? 'Strategic Intelligence' : 'Executive Summary'}
+                                    {resolveResultsHeading(effectiveMode, isBusinessStrategy)}
                                 </h3>
                             </div>
                             {isBusinessStrategy && (
@@ -381,7 +447,7 @@ export default function Home() {
                     <div>
                         <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">Top Sources</h4>
                         <div className="flex overflow-x-auto pb-4 gap-4 snap-x no-scrollbar">
-                            {results.rankedList.map((item: any, i: number) => (
+                            {results.rankedList.map((item: IRankedResult, i: number) => (
                                 <a
                                     key={i}
                                     href={item.url}
@@ -406,6 +472,315 @@ export default function Home() {
                 )}
             </div>
         );
+    };
+
+    const renderLeadsReply = (results: IResearchResults) => (
+        <div className="space-y-5 mt-4 w-full">
+            <div className="flex items-center gap-3 mb-2">
+                <Sparkles size={18} className="text-brand-primary animate-pulse" />
+                <h3 className="font-extrabold text-lg text-white tracking-tight">Lead Results</h3>
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 rounded-full">
+                    {results.rankedList.length} Lead{results.rankedList.length !== 1 ? 's' : ''}
+                </span>
+            </div>
+            {results.rankedList.map((lead: IRankedResult, i: number) => (
+                <div key={i} className="bg-gray-800/50 border border-white/5 hover:border-brand-primary/30 rounded-2xl p-5 transition-all">
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md">#{lead.rank ?? i + 1}</span>
+                                {lead.confidenceScore != null && (
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${lead.confidenceScore >= 75 ? 'bg-green-500/15 text-green-400' : lead.confidenceScore >= 50 ? 'bg-yellow-500/15 text-yellow-400' : 'bg-red-500/15 text-red-400'}`}>
+                                        {lead.confidenceScore}% confidence
+                                    </span>
+                                )}
+                            </div>
+                            <h4 className="font-bold text-white text-base">{lead.title}</h4>
+                            {lead.industry && <p className="text-xs text-gray-400 mt-0.5">{lead.industry}{lead.location ? ` · ${lead.location}` : ''}</p>}
+                        </div>
+                        {lead.url && (
+                            <a href={lead.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-brand-primary hover:underline shrink-0">
+                                Visit <ExternalLink size={11} />
+                            </a>
+                        )}
+                    </div>
+
+                    {/* Contact row */}
+                    <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
+                        {lead.decisionMakerRole && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Decision Maker</span>
+                                <span className="text-white font-medium">{lead.decisionMakerRole}</span>
+                            </div>
+                        )}
+                        {lead.email && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Email</span>
+                                <span className="text-green-400 font-medium break-all">{lead.email}</span>
+                            </div>
+                        )}
+                        {lead.phoneNumber && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Phone</span>
+                                <span className="text-blue-400 font-medium">{lead.phoneNumber}</span>
+                            </div>
+                        )}
+                        {lead.contactMethod && !lead.email && !lead.phoneNumber && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Contact</span>
+                                <span className="text-white font-medium">{lead.contactMethod}</span>
+                            </div>
+                        )}
+                        {lead.companySize && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Company Size</span>
+                                <span className="text-white font-medium">{lead.companySize}</span>
+                            </div>
+                        )}
+                        {lead.estimatedRevenue && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2">
+                                <span className="text-gray-500 block mb-0.5">Est. Revenue</span>
+                                <span className="text-yellow-400 font-medium">{lead.estimatedRevenue}</span>
+                            </div>
+                        )}
+                        {lead.techStack && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2 col-span-2">
+                                <span className="text-gray-500 block mb-0.5">Tech Stack</span>
+                                <span className="text-cyan-400 font-medium">{lead.techStack}</span>
+                            </div>
+                        )}
+                        {lead.linkedinUrl && (
+                            <div className="bg-gray-900/60 rounded-lg px-3 py-2 col-span-2">
+                                <span className="text-gray-500 block mb-0.5">LinkedIn</span>
+                                <a href={lead.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-400 font-medium hover:underline break-all">{lead.linkedinUrl}</a>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Business intelligence */}
+                    <div className="space-y-2 text-sm">
+                        {lead.businessGap && (
+                            <div className="bg-red-500/5 border border-red-500/10 rounded-xl px-4 py-2.5">
+                                <span className="text-red-400 text-xs font-semibold uppercase tracking-wider block mb-1">Business Gap</span>
+                                <p className="text-gray-300 text-[13px]">{lead.businessGap}</p>
+                            </div>
+                        )}
+                        {lead.whatYouCanSell && (
+                            <div className="bg-green-500/5 border border-green-500/10 rounded-xl px-4 py-2.5">
+                                <span className="text-green-400 text-xs font-semibold uppercase tracking-wider block mb-1">What to Sell</span>
+                                <p className="text-gray-300 text-[13px]">{lead.whatYouCanSell}</p>
+                            </div>
+                        )}
+                        {lead.sellingStrategy && (
+                            <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl px-4 py-2.5">
+                                <span className="text-blue-400 text-xs font-semibold uppercase tracking-wider block mb-1">Selling Strategy</span>
+                                <p className="text-gray-300 text-[13px]">{lead.sellingStrategy}</p>
+                            </div>
+                        )}
+                        {lead.outreachMessage && (
+                            <div className="bg-purple-500/5 border border-purple-500/10 rounded-xl px-4 py-2.5">
+                                <span className="text-purple-400 text-xs font-semibold uppercase tracking-wider block mb-1">Outreach Message</span>
+                                <p className="text-gray-300 text-[13px] italic">"{lead.outreachMessage}"</p>
+                            </div>
+                        )}
+                        {lead.justification && (
+                            <div className="bg-gray-700/30 border border-white/5 rounded-xl px-4 py-2.5">
+                                <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-1">Why This Lead</span>
+                                <p className="text-gray-300 text-[13px]">{lead.justification}</p>
+                            </div>
+                        )}
+                        {lead.references && lead.references.length > 0 && (
+                            <div className="bg-gray-700/30 border border-white/5 rounded-xl px-4 py-2.5">
+                                <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider block mb-1">References</span>
+                                <ul className="space-y-1">
+                                    {lead.references.map((ref, ri) => (
+                                        <li key={ri} className="text-[13px] text-brand-primary/80 hover:text-brand-primary truncate">
+                                            <a href={ref} target="_blank" rel="noreferrer">{ref}</a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    const renderResourcesReply = (results: IResearchResults) => (
+        <div className="space-y-4 mt-4 w-full">
+            {results.summary && (
+                <div className="bg-gray-800/40 border border-white/5 rounded-2xl px-5 py-4 text-gray-200 text-[15px] leading-7">
+                    {results.summary}
+                </div>
+            )}
+            <div className="flex items-center gap-3 mb-1">
+                <List size={16} className="text-brand-primary" />
+                <h3 className="font-bold text-sm text-gray-400 uppercase tracking-wider">
+                    {results.rankedList.length} Resource{results.rankedList.length !== 1 ? 's' : ''}
+                </h3>
+            </div>
+            <div className="space-y-3">
+                {results.rankedList.map((item: IRankedResult, i: number) => (
+                    <a key={i} href={item.url} target="_blank" rel="noreferrer"
+                        className="flex items-start gap-4 bg-gray-800/40 hover:bg-gray-800 border border-white/5 hover:border-brand-primary/30 rounded-xl p-4 transition-all group">
+                        <span className="text-brand-primary font-bold text-sm mt-0.5 shrink-0 w-5">{i + 1}.</span>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h5 className="font-semibold text-white text-[14px] group-hover:text-brand-primary transition-colors line-clamp-1">{item.title}</h5>
+                                {item.resourceType && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-gray-700 text-gray-400 rounded-md shrink-0">{item.resourceType}</span>
+                                )}
+                            </div>
+                            <p className="text-gray-400 text-[13px] line-clamp-2">{item.description || item.reason || ''}</p>
+                        </div>
+                        <ExternalLink size={14} className="text-gray-500 group-hover:text-brand-primary transition-colors shrink-0 mt-1" />
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderChatReply = (content: string) => (
+        <div className="max-w-2xl rounded-3xl border border-white/8 bg-gray-800/60 px-5 py-4 text-[15px] leading-7 text-gray-100 shadow-xl">
+            {content}
+        </div>
+    );
+
+    const renderSummaryReply = (results: IResearchResults) => {
+        const bullets = results.keyPoints?.length
+            ? results.keyPoints
+            : (results.summary || '')
+                  .split('\n')
+                  .map((line) => line.replace(/^[-•]\s*/, '').trim())
+                  .filter(Boolean)
+                  .slice(0, 7);
+
+        return (
+            <div className="max-w-2xl rounded-3xl border border-white/8 bg-gray-800/50 px-5 py-5 shadow-xl">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">Short Summary</h3>
+                <ul className="space-y-2 text-sm leading-6 text-gray-200">
+                    {bullets.map((point, index) => (
+                        <li key={`${point}-${index}`} className="flex gap-2">
+                            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-primary" />
+                            <span>{point}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    };
+
+    const renderCodeReply = (content: string) => (
+        <div className="max-w-3xl overflow-hidden rounded-3xl border border-white/8 bg-[#11131A] shadow-xl">
+            <div className="border-b border-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                Coding Response
+            </div>
+            <pre className="overflow-x-auto px-4 py-4 text-sm leading-6 text-gray-200 whitespace-pre-wrap">{content}</pre>
+        </div>
+    );
+
+    const renderGuidedReply = (results: IResearchResults, mode: TAssistantMode) => {
+        const lines = (results.summary || '').split('\n');
+        return (
+            <div className="max-w-3xl space-y-4">
+                {/* Explanation / Summary */}
+                <div className="rounded-3xl border border-white/8 bg-gray-800/50 px-6 py-5 shadow-xl">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-primary flex items-center gap-2">
+                        <Sparkles size={13} className="opacity-80" />
+                        {resolveResultsHeading(mode, false)}
+                    </h3>
+                    <div className="space-y-2 text-[15px] leading-7 text-gray-200">
+                        {lines.filter(Boolean).map((line, i) => {
+                            // Markdown-style bold headers: **text** or lines ending with :
+                            const isHeader = /^#{1,3}\s/.test(line) || (line.endsWith(':') && line.length < 60 && !line.startsWith('-'));
+                            const isBullet = /^[-•*]\s/.test(line.trim()) || /^\d+\.\s/.test(line.trim());
+                            const clean = line.replace(/^#{1,3}\s/, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/^[-•*]\s/, '').replace(/^\d+\.\s/, '');
+                            if (isHeader) return (
+                                <h4 key={i} className="font-bold text-white text-sm uppercase tracking-wide mt-4 mb-1 border-b border-white/5 pb-1">{clean}</h4>
+                            );
+                            if (isBullet) return (
+                                <div key={i} className="flex gap-2 pl-1">
+                                    <span className="text-brand-primary mt-2 shrink-0">•</span>
+                                    <span className="flex-1">{clean}</span>
+                                </div>
+                            );
+                            return <p key={i} className="text-gray-200">{line}</p>;
+                        })}
+                    </div>
+                </div>
+
+                {/* Source cards — shown for all guided modes when sources exist */}
+                {results.rankedList && results.rankedList.length > 0 && (
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+                            Sources ({results.rankedList.length})
+                        </h4>
+                        <div className="flex overflow-x-auto pb-3 gap-3 snap-x no-scrollbar">
+                            {results.rankedList.map((item: IRankedResult, i: number) => (
+                                <a key={i} href={item.url} target="_blank" rel="noreferrer"
+                                    className="snap-start min-w-[240px] max-w-[240px] bg-gray-800/40 hover:bg-gray-800 border border-white/5 hover:border-brand-primary/40 rounded-xl p-3.5 transition-all group flex flex-col shrink-0 cursor-pointer">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[10px] font-bold text-gray-500 bg-gray-900 px-1.5 py-0.5 rounded">
+                                            {item.sourceType || `Source ${i + 1}`}
+                                        </span>
+                                        <ExternalLink size={12} className="text-gray-600 group-hover:text-brand-primary transition-colors" />
+                                    </div>
+                                    <h5 className="font-semibold text-white text-xs line-clamp-2 mb-1.5 group-hover:text-brand-primary transition-colors">
+                                        {item.title || 'Resource'}
+                                    </h5>
+                                    <p className="text-[11px] text-gray-500 line-clamp-2 mt-auto">
+                                        {item.reason || item.description || item.url}
+                                    </p>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const shouldRenderPlainChat = (message: ChatMessage): boolean =>
+        Boolean(
+            message.role === 'agent' &&
+            message.status === 'completed' &&
+            message.content &&
+            (
+                message.mode === 'casual_chat' ||
+                (!message.results?.rankedList?.length && !message.results?.contract)
+            )
+        );
+
+    const resolveResultsHeading = (
+        mode: TAssistantMode | undefined,
+        isBusinessStrategy: boolean
+    ): string => {
+        if (isBusinessStrategy || mode === 'business_strategy') return 'Strategic Intelligence';
+        switch (mode) {
+            case 'learning':
+                return 'Learning Guide';
+            case 'knowledge':
+                return 'Quick Answer';
+            case 'resources':
+                return 'Resource Pack';
+            case 'leads':
+                return 'Lead Results';
+            case 'scraping':
+                return 'Extraction Plan';
+            case 'coding':
+                return 'Coding Response';
+            case 'comparison':
+                return 'Comparison';
+            case 'planning':
+                return 'Action Plan';
+            case 'summary':
+                return 'Short Summary';
+            case 'research':
+            default:
+                return 'Executive Summary';
+        }
     };
 
     return (
@@ -540,7 +915,12 @@ export default function Home() {
                                                         </div>
                                                     )}
 
-                                                    {(msg.results?.summary || msg.results?.rankedList?.length > 0) && renderResults(msg.results, msg.isBusinessStrategy)}
+                                                    {shouldRenderPlainChat(msg) && renderChatReply(msg.content)}
+
+                                                    {(msg.results?.summary || (msg.results?.rankedList?.length ?? 0) > 0) &&
+                                                        msg.results &&
+                                                        !shouldRenderPlainChat(msg) &&
+                                                        renderResults(msg.results, msg.mode, msg.isBusinessStrategy)}
                                                 </div>
                                             )}
                                         </div>
@@ -596,7 +976,7 @@ export default function Home() {
                                             <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Format</label>
                                             <div className="flex flex-wrap gap-2">
                                                 {FORMAT_OPTIONS.map(opt => (
-                                                    <button key={opt.value} onClick={() => setFormat(format === opt.value ? null : opt.value as any)}
+                                                    <button key={opt.value} onClick={() => setFormat(format === opt.value ? null : opt.value)}
                                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${format === opt.value ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}>
                                                         {opt.icon}{opt.label}
                                                     </button>
@@ -662,10 +1042,10 @@ export default function Home() {
 
                                 <button
                                     type="submit"
-                                    disabled={!inputValue.trim()}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${inputValue.trim() ? 'bg-white text-black hover:bg-gray-200 shadow-md transform hover:scale-105' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                    disabled={!inputValue.trim() || isSubmitting}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${inputValue.trim() && !isSubmitting ? 'bg-white text-black hover:bg-gray-200 shadow-md transform hover:scale-105' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
                                 >
-                                    <Send size={14} />
+                                    {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                 </button>
                             </div>
                         </form>
@@ -679,4 +1059,39 @@ export default function Home() {
             </main>
         </div>
     );
+}
+
+function normalizeSessions(input: ChatSession[]): ChatSession[] {
+    const seen = new Set<string>();
+
+    return [...input]
+        .filter((session) => {
+            if (!session || typeof session.id !== 'string' || seen.has(session.id)) {
+                return false;
+            }
+            seen.add(session.id);
+            return true;
+        })
+        .map((session) => ({
+            ...session,
+            title: buildSessionTitle(
+                session.title || session.messages.find((message) => message.role === 'user')?.content || 'New chat'
+            ),
+            messages: session.messages || [],
+        }))
+        .sort((left, right) => right.createdAt - left.createdAt);
+}
+
+function buildSessionTitle(query: string): string {
+    const trimmed = query.trim().replace(/\s+/g, ' ');
+    if (!trimmed) return 'New chat';
+    return trimmed.length > 30 ? `${trimmed.substring(0, 30)}...` : trimmed;
+}
+
+function resolveCompletedContent(results: IResearchResults | null | undefined): string {
+    if (!results) return '';
+    if (results.contract?.mode === 'casual_chat') {
+        return results.summary || '';
+    }
+    return '';
 }

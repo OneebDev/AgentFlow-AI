@@ -1,15 +1,16 @@
 import { create } from 'zustand';
+import { IResearchResults } from '@/lib/api';
 
 interface SearchState {
     jobId: string | null;
     status: string;
     topic: string;
     thought: string | null; // Agent's reasoning
-    results: any | null;
+    results: IResearchResults | null;
     errorMessage: string | null;
     setJob: (jobId: string, topic: string) => void;
     setStatus: (status: string, thought?: string) => void;
-    setResults: (results: any) => void;
+    setResults: (results: IResearchResults) => void;
     setError: (message: string | null) => void;
     reset: () => void;
 }

@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import logger from '../../../handlers/logger';
 import cache from '../../../utils/cache';
+import { IScraperResult } from '../../_shared/types/agents.interface';
 
 const SCRAPER_TIMEOUT = parseInt(process.env.SCRAPER_TIMEOUT_MS || '5000', 10);
 const MAX_RETRIES = parseInt(process.env.SCRAPER_MAX_RETRIES || '1', 10);
@@ -11,15 +12,6 @@ const DEFAULT_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; AgentFlowBot/1.0)',
     Accept: 'text/html,application/xhtml+xml',
 };
-
-export interface IScraperResult {
-    sourceType: string;
-    url: string;
-    title: string;
-    description: string;
-    content: string;
-    scrapedAt: string;
-}
 
 /**
  * Scrape a single URL and return structured content.
@@ -42,7 +34,8 @@ export async function scrapeUrl(url: string): Promise<IScraperResult | null> {
                 validateStatus: (status) => status < 400,
             });
 
-            const $ = cheerio.load(response.data);
+            const html = typeof response.data === 'string' ? response.data : '';
+            const $ = cheerio.load(html);
 
             // Remove noise
             $('script, style, nav, footer, header, iframe, noscript, aside').remove();
@@ -63,12 +56,15 @@ export async function scrapeUrl(url: string): Promise<IScraperResult | null> {
                 description: metaDesc || paragraphs[0] || '',
                 content: paragraphs.join(' '),
                 scrapedAt: new Date().toISOString(),
+                emails: extractEmails(`${metaDesc} ${paragraphs.join(' ')}`),
+                phoneNumbers: extractPhoneNumbers(`${metaDesc} ${paragraphs.join(' ')}`),
             };
 
             await cache.set(cacheKey, result, CACHE_TTL);
             return result;
-        } catch (err: any) {
-            logger.warn('Scrape attempt failed', { meta: { url, attempt, err: err.message } });
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Unknown scrape error';
+            logger.warn('Scrape attempt failed', { meta: { url, attempt, err: message } });
             if (attempt === MAX_RETRIES) return null;
         }
     }
@@ -85,8 +81,19 @@ export async function scrapeUrls(urls: string[]): Promise<IScraperResult[]> {
     for (let i = 0; i < urls.length; i += BATCH_SIZE) {
         const batch = urls.slice(i, i + BATCH_SIZE);
         const batchResults = await Promise.all(batch.map(scrapeUrl));
-        results.push(...(batchResults.filter(Boolean) as IScraperResult[]));
+        const validResults = batchResults.filter((result): result is IScraperResult => result !== null);
+        results.push(...validResults);
     }
 
     return results;
+}
+
+function extractEmails(content: string): string[] {
+    const matches = content.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
+    return Array.from(new Set(matches)).slice(0, 3);
+}
+
+function extractPhoneNumbers(content: string): string[] {
+    const matches = content.match(/(?:\+\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}/g) || [];
+    return Array.from(new Set(matches)).slice(0, 3);
 }

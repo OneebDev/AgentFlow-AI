@@ -101,10 +101,15 @@ const fileTransport = (): Array<FileTransportInstance> => {
 }
 
 const dbTransport = (): Array<MongoDBTransportInstance> => {
+    const isTestEnvironment = process.env.NODE_ENV === 'test' || Boolean(process.env.JEST_WORKER_ID)
+    if (isTestEnvironment || !config.DATABASE_URL) {
+        return []
+    }
+
     return [
         new transports.MongoDB({
             level: 'info',
-            db: config.DATABASE_URL as string,
+            db: config.DATABASE_URL,
             metaKey: 'meta',
             expireAfterSeconds: 3600 * 24 * 30,
             collection: 'logs'

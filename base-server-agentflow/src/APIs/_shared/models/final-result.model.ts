@@ -21,6 +21,14 @@ const finalResultSchema = new mongoose.Schema(
             type: String,
             default: null,
         },
+        keyPoints: {
+            type: [String],
+            default: [],
+        },
+        contract: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null,
+        },
         completedAt: {
             type: Date,
             default: Date.now,

@@ -1,101 +1,218 @@
-import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import logger from '../../../handlers/logger';
+import { IPlannerHistoryMessage, IPlannerResult } from '../../_shared/types/agents.interface';
+import {
+    buildHeuristicPlannerResult,
+    buildPlannerPrompt,
+    detectAssistantMode,
+    detectLanguageStyle,
+    mapAssistantModeAlias,
+    summarizeHistory,
+} from '../../../config/assistant';
 
+// Grok (xAI) — OpenAI-compatible
+const grok = new OpenAI({
+    apiKey: process.env.XAI_API_KEY || '',
+    baseURL: process.env.XAI_BASE_URL || 'https://api.groq.com/openai/v1',
+});
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-function buildPlannerInstruction(): string {
+type TAIEngine = 'grok' | 'openai' | 'gemini';
 
-    return `
-You are a WORLD-CLASS MULTI-CAPABLE AI ARCHITECT (Lead Gen + Research + Technical + Business Advisor).
-Your objective is to DECODE user intent and structure a multi-step execution plan.
-
-STRICT FRAMEWORK (STEP 1 & 2):
-1. UNDERSTAND INTENT: Classify prompt as: Explanation | Guide | Lead Generation | Market Research | Business Idea | Technical | Automation | Problem Solving.
-2. CONTEXT STITCHING: If the current prompt is a fragment (e.g. 'give me', 'more', 'next') or under 3 words, you MUST combine it with the SUBJECT from the previous human messages. For example, if History is about 'Robotics' and prompt is 'give me', behave as 'Give me leads for Robotics'.
-3. CONTEXT-FIRST RULE: If the user provides a quantity or action WITHOUT a clear industry or domain, and NO history exists, you MUST set 'clarificationNeeded' to true.
-4. THINK LIKE GOOGLE & LINKEDIN: Simulate analysis and identify what is MISSING.
-
-JSON RESPONSE SHAPE:
-{
-  "thought": "Internal reasoning (Category + Simulation results).",
-  "clarificationNeeded": boolean, 
-  "clarificationQuestion": "Question for missing details.",
-  "directAnswer": "Answer for Chat Mode. Empty otherwise.",
-  "queries": ["query 1", "query 2", "query 3"],
-  "internalRefinedTopic": "Refined version of the focus.",
-  "requestedQuantity": number|null,
-  "detectedLanguage": "user language",
-  "detectedFormat": "The framework category (Explanation | Research | Lead Generation | etc)",
-  "detectedOutputType": "summary|list",
-  "isBusinessStrategy": boolean (True ONLY for Lead Generation or Market Research)
-}
-`.trim();
+function getEngine(): TAIEngine {
+    const e = (process.env.AI_ENGINE || 'grok').toLowerCase();
+    if (e === 'openai') return 'openai';
+    if (e === 'gemini') return 'gemini';
+    return 'grok';
 }
 
-export async function planResearch(topic: string, history: any[] = []) {
-    const useOpenAI = process.env.AI_ENGINE === 'openai';
-    
-    // Format history for the AI
-    const historyContext = history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
-    const userPrompt = history.length > 0 
-        ? `Conversation History:\n${historyContext}\n\nCurrent New Prompt: "${topic}"`
-        : `User Prompt: "${topic}"`;
+export async function planResearch(topic: string, history: IPlannerHistoryMessage[] = []): Promise<IPlannerResult> {
+    const heuristic = buildHeuristicPlannerResult(topic, history);
+    const engine = getEngine();
+    const conversationSummary = summarizeHistory(history);
+    const inferredMode = detectAssistantMode(topic, history);
+    const inferredLanguageStyle = detectLanguageStyle(topic, history);
+
+    const userPrompt = [
+        `Conversation Summary: ${conversationSummary}`,
+        `Current Prompt: "${topic}"`,
+        `Heuristic Mode Guess: ${inferredMode}`,
+        `Heuristic Language Style: ${inferredLanguageStyle}`,
+        `Heuristic Requested Quantity: ${heuristic.requestedQuantity ?? 'not provided'}`,
+        `Heuristic Missing Fields: ${heuristic.missingFields.join(', ') || 'none'}`,
+    ].join('\n');
+
+    const systemPrompt = buildPlannerPrompt();
+
+    const runGrok = async (): Promise<string> => {
+        const response = await grok.chat.completions.create({
+            model: process.env.XAI_MODEL || 'grok-3',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+            ],
+            response_format: { type: 'json_object' },
+        });
+        return response.choices[0].message.content || '{}';
+    };
+
+    const runOpenAI = async (): Promise<string> => {
+        const response = await openai.chat.completions.create({
+            model: process.env.OPENAI_MODEL || 'gpt-4o',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+            ],
+            response_format: { type: 'json_object' },
+        });
+        return response.choices[0].message.content || '{}';
+    };
+
+    const runGemini = async (): Promise<string> => {
+        const model = genAI.getGenerativeModel({
+            model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+            systemInstruction: systemPrompt,
+            generationConfig: { responseMimeType: 'application/json' },
+        });
+        const result = await model.generateContent(userPrompt);
+        return result.response.text();
+    };
+
+    const isQuotaOrAuthError = (e: unknown): boolean => {
+        const msg = e instanceof Error ? e.message : String(e);
+        return msg.includes('429') || msg.includes('quota') || msg.includes('exceeded') || msg.includes('billing') || msg.includes('401') || msg.includes('invalid_api_key');
+    };
 
     try {
         let raw = '';
-        
-        if (useOpenAI) {
-            const response = await openai.chat.completions.create({
-                model: process.env.OPENAI_MODEL || 'gpt-4o',
-                messages: [
-                    { role: 'system', content: buildPlannerInstruction() },
-                    { role: 'user', content: userPrompt }
-                ],
-                response_format: { type: 'json_object' }
-            });
-            raw = response.choices[0].message.content || '{}';
+        let usedEngine = engine;
+
+        if (engine === 'grok') {
+            try {
+                raw = await runGrok();
+            } catch (grokErr) {
+                logger.warn('Grok failed — falling back to OpenAI', { meta: { err: grokErr instanceof Error ? grokErr.message : '' } });
+                try {
+                    raw = await runOpenAI();
+                    usedEngine = 'openai';
+                } catch (oaiErr) {
+                    if (process.env.GEMINI_API_KEY) {
+                        logger.warn('OpenAI failed — falling back to Gemini');
+                        raw = await runGemini();
+                        usedEngine = 'gemini';
+                    } else {
+                        throw oaiErr;
+                    }
+                }
+            }
+        } else if (engine === 'openai') {
+            try {
+                raw = await runOpenAI();
+            } catch (oaiErr) {
+                if (isQuotaOrAuthError(oaiErr) && process.env.GEMINI_API_KEY) {
+                    logger.warn('OpenAI quota — falling back to Gemini');
+                    raw = await runGemini();
+                    usedEngine = 'gemini';
+                } else {
+                    throw oaiErr;
+                }
+            }
         } else {
-            const model = genAI.getGenerativeModel({
-                model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-                systemInstruction: buildPlannerInstruction(),
-                generationConfig: { responseMimeType: 'application/json' }
-            } as any);
-            const result = await model.generateContent(userPrompt);
-            raw = result.response.text();
+            raw = await runGemini();
         }
 
-        const parsed = JSON.parse(raw);
-        logger.info('Autonomous Plan Generated', { meta: { engine: useOpenAI ? 'openai' : 'gemini', ...parsed } });
+        const parsed = mergePlannerResult(parsePlannerResponse(raw, topic), heuristic);
+        logger.info('Autonomous Plan Generated', { meta: { engine: usedEngine, mode: parsed.mode } });
+        return parsed;
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown planner error';
+        logger.error('Autonomous Planning failed — using heuristic', { meta: { err: message } });
+        return heuristic;
+    }
+}
 
-        return {
-            thought:              parsed.thought,
-            clarificationNeeded:   parsed.clarificationNeeded   || false,
-            clarificationQuestion: parsed.clarificationQuestion || '',
-            internalRefinedTopic: parsed.internalRefinedTopic || topic,
-            directAnswer:         parsed.directAnswer         || '',
-            queries:              parsed.queries              || [],
-            language:             parsed.detectedLanguage     || 'English',
-            format:               parsed.detectedFormat       || 'articles',
-            outputType:           parsed.detectedOutputType   || 'list',
-            requestedQuantity:    parsed.requestedQuantity    || null,
-            isBusinessStrategy:   parsed.isBusinessStrategy   || false
-        };
-    } catch (err: any) {
-        logger.error('Autonomous Planning failed', { meta: { err: err.message } });
-        return {
-            thought:              'Analyzing prompt directly...',
-            clarificationNeeded:   false,
-            clarificationQuestion: '',
-            internalRefinedTopic: topic,
-            directAnswer:         '',
-            queries:              [topic],
-            language:             'English',
-            format:               'articles',
-            outputType:           'list',
-            requestedQuantity:    null,
-            isBusinessStrategy:   false
-        };
+function parsePlannerResponse(raw: string, topic: string): Partial<IPlannerResult> {
+    const parsed = JSON.parse(raw) as unknown;
+    const record = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+
+    return {
+        thought: typeof record.thought === 'string' ? record.thought : `Analyzing ${topic}`,
+        mode: normalizeMode(record.mode),
+        clarificationNeeded: Boolean(record.clarificationNeeded),
+        clarificationQuestion:
+            typeof record.clarificationQuestion === 'string' ? record.clarificationQuestion : '',
+        missingFields: Array.isArray(record.missingFields)
+            ? record.missingFields.filter((field): field is string => typeof field === 'string')
+            : [],
+        internalRefinedTopic:
+            typeof record.internalRefinedTopic === 'string' ? record.internalRefinedTopic : topic,
+        directAnswer: typeof record.directAnswer === 'string' ? record.directAnswer : '',
+        queries: Array.isArray(record.queries)
+            ? record.queries.filter((query): query is string => typeof query === 'string')
+            : [],
+        language: typeof record.detectedLanguage === 'string' ? record.detectedLanguage : 'English',
+        languageStyle: normalizeLanguageStyle(record.languageStyle),
+        format: normalizeFormat(record.detectedFormat),
+        outputType: record.detectedOutputType === 'summary' ? 'summary' : 'list',
+        requestedQuantity: typeof record.requestedQuantity === 'number' ? record.requestedQuantity : null,
+        isBusinessStrategy: Boolean(record.isBusinessStrategy),
+        responseSections: Array.isArray(record.responseSections)
+            ? record.responseSections.filter((section): section is string => typeof section === 'string')
+            : [],
+        preferAuthenticatedLeads: Boolean(record.preferAuthenticatedLeads),
+        followUpQuestionBudget:
+            typeof record.followUpQuestionBudget === 'number' ? record.followUpQuestionBudget : 0,
+    };
+}
+
+function mergePlannerResult(parsed: Partial<IPlannerResult>, fallback: IPlannerResult): IPlannerResult {
+    const missingFields =
+        parsed.missingFields && parsed.missingFields.length <= fallback.missingFields.length
+            ? parsed.missingFields
+            : fallback.missingFields;
+    const clarificationNeeded =
+        parsed.directAnswer && parsed.directAnswer.length > 0 ? false : missingFields.length > 0;
+
+    return {
+        thought: parsed.thought || fallback.thought,
+        mode: parsed.mode || fallback.mode,
+        clarificationNeeded,
+        clarificationQuestion: parsed.clarificationQuestion || fallback.clarificationQuestion,
+        missingFields,
+        internalRefinedTopic: parsed.internalRefinedTopic || fallback.internalRefinedTopic,
+        directAnswer: parsed.directAnswer || fallback.directAnswer,
+        queries: parsed.queries?.length ? parsed.queries : fallback.queries,
+        language: parsed.language || fallback.language,
+        languageStyle: parsed.languageStyle || fallback.languageStyle,
+        format: parsed.format || fallback.format,
+        outputType: parsed.outputType || fallback.outputType,
+        requestedQuantity: parsed.requestedQuantity ?? fallback.requestedQuantity,
+        isBusinessStrategy: parsed.isBusinessStrategy ?? fallback.isBusinessStrategy,
+        responseSections: parsed.responseSections?.length ? parsed.responseSections : fallback.responseSections,
+        preferAuthenticatedLeads: parsed.preferAuthenticatedLeads ?? fallback.preferAuthenticatedLeads,
+        followUpQuestionBudget: parsed.followUpQuestionBudget ?? fallback.followUpQuestionBudget,
+    };
+}
+
+function normalizeMode(value: unknown): IPlannerResult['mode'] | undefined {
+    return typeof value === 'string' ? mapAssistantModeAlias(value) ?? undefined : undefined;
+}
+
+function normalizeLanguageStyle(value: unknown): IPlannerResult['languageStyle'] | undefined {
+    const supportedStyles: IPlannerResult['languageStyle'][] = ['english', 'roman_urdu', 'urdu', 'hindi', 'mixed'];
+    return supportedStyles.find((style) => style === value);
+}
+
+function normalizeFormat(value: unknown): IPlannerResult['format'] {
+    switch (value) {
+        case 'videos':
+        case 'products':
+        case 'news':
+        case 'articles':
+            return value;
+        default:
+            return 'articles';
     }
 }

@@ -10,6 +10,7 @@
  */
 import Redis from 'ioredis';
 import logger from '../handlers/logger';
+import { TJobEvent } from '../APIs/_shared/types/agents.interface';
 
 const redisConfig = {
     host: process.env.REDIS_HOST || 'localhost',
@@ -34,11 +35,14 @@ function getPublisher(): Redis {
  * Publish a job event to all SSE subscribers watching this jobId.
  * Fire-and-forget — workers must not block on this call.
  */
-export function publishJobEvent(jobId: string, event: Record<string, unknown>): void {
+export function publishJobEvent(jobId: string, event: TJobEvent): void {
     const channel = `job:${jobId}`;
     getPublisher()
         .publish(channel, JSON.stringify(event))
-        .catch((err) => logger.error('PubSub publish failed', { meta: { err, jobId } }));
+        .catch((err: unknown) => {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            logger.error('PubSub publish failed', { meta: { err: errorMessage, jobId } });
+        });
 }
 
 /**
@@ -47,19 +51,23 @@ export function publishJobEvent(jobId: string, event: Record<string, unknown>): 
  */
 export function subscribeToJob(
     jobId: string,
-    onMessage: (event: Record<string, unknown>) => void
+    onMessage: (event: TJobEvent) => void
 ): () => void {
     // Each subscriber needs its own dedicated connection.
     const sub = new Redis(redisConfig);
     const channel = `job:${jobId}`;
 
-    sub.subscribe(channel).catch((err) =>
-        logger.error('PubSub subscribe failed', { meta: { err, jobId } })
-    );
+    sub.subscribe(channel).catch((err: unknown) => {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        logger.error('PubSub subscribe failed', { meta: { err: errorMessage, jobId } });
+    });
 
     sub.on('message', (_ch: string, raw: string) => {
         try {
-            onMessage(JSON.parse(raw));
+            const parsed = JSON.parse(raw) as unknown;
+            if (isJobEvent(parsed)) {
+                onMessage(parsed);
+            }
         } catch {
             // malformed message — ignore
         }
@@ -71,4 +79,13 @@ export function subscribeToJob(
         sub.unsubscribe(channel).catch(() => {});
         sub.quit().catch(() => {});
     };
+}
+
+function isJobEvent(value: unknown): value is TJobEvent {
+    if (!value || typeof value !== 'object' || !('type' in value)) {
+        return false;
+    }
+
+    const event = value as { type?: unknown };
+    return typeof event.type === 'string';
 }

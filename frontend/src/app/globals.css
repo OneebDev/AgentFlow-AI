@@ -7,14 +7,23 @@
   --brand-secondary: #1d4ed8;
   --glass-bg: rgba(15, 23, 42, 0.7);
   --glass-border: rgba(51, 65, 85, 0.5);
+  --font-sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
 }
 
 @layer components {

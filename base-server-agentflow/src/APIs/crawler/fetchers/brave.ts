@@ -7,24 +7,19 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import logger from '../../../handlers/logger';
 import cache from '../../../utils/cache';
+import { IBraveResult } from '../../_shared/types/agents.interface';
 
-axiosRetry(axios as any, {
+const http = axios.create();
+
+axiosRetry(http, {
     retries: parseInt(process.env.SCRAPER_MAX_RETRIES || '3', 10),
-    retryDelay: axiosRetry.exponentialDelay,
+    retryDelay: (...args) => axiosRetry.exponentialDelay(...args),
     retryCondition: (err) =>
         axiosRetry.isNetworkOrIdempotentRequestError(err) || err.response?.status === 429,
 });
 
 const BRAVE_API = 'https://api.search.brave.com/res/v1/web/search';
 const CACHE_TTL = 1800;
-
-export interface IBraveResult {
-    sourceType: 'brave';
-    title:       string;
-    url:         string;
-    description: string;
-    query:       string;
-}
 
 export async function fetchBrave(
     queries:     string[],
@@ -49,7 +44,7 @@ export async function fetchBrave(
         }
 
         try {
-            const response = await axios.get(BRAVE_API, {
+            const response = await http.get<unknown>(BRAVE_API, {
                 params:  { q, count: maxPerQuery, search_lang: 'en' },
                 headers: {
                     'Accept':               'application/json',
@@ -59,12 +54,12 @@ export async function fetchBrave(
                 timeout: parseInt(process.env.SCRAPER_TIMEOUT_MS || '10000', 10),
             });
 
-            const raw = response.data?.web?.results || [];
-            const items: IBraveResult[] = raw.slice(0, maxPerQuery).map((r: any) => ({
+            const raw = extractBraveResults(response.data);
+            const items: IBraveResult[] = raw.slice(0, maxPerQuery).map((r) => ({
                 sourceType:  'brave' as const,
-                title:       r.title                               || '',
-                url:         r.url                                 || '',
-                description: r.description || r.extra_snippets?.[0] || '',
+                title:       r.title,
+                url:         r.url,
+                description: r.description,
                 query:       q,
             }));
 
@@ -77,4 +72,36 @@ export async function fetchBrave(
     }
 
     return results;
+}
+
+function extractBraveResults(data: unknown): Array<{ title: string; url: string; description: string }> {
+    if (!data || typeof data !== 'object' || !('web' in data)) {
+        return [];
+    }
+
+    const web = (data as { web?: unknown }).web;
+    if (!web || typeof web !== 'object' || !('results' in web)) {
+        return [];
+    }
+
+    const results = (web as { results?: unknown }).results;
+    if (!Array.isArray(results)) {
+        return [];
+    }
+
+    return results.map((item) => {
+        const entry = item as Record<string, unknown>;
+        const extraSnippets = Array.isArray(entry.extra_snippets)
+            ? entry.extra_snippets.filter((snippet): snippet is string => typeof snippet === 'string')
+            : [];
+
+        return {
+            title: typeof entry.title === 'string' ? entry.title : '',
+            url: typeof entry.url === 'string' ? entry.url : '',
+            description:
+                typeof entry.description === 'string'
+                    ? entry.description
+                    : extraSnippets[0] ?? '',
+        };
+    });
 }

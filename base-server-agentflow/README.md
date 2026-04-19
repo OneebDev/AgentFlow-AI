@@ -1,55 +1,40 @@
-# 🚀 Node.js TypeScript Server Boilerplate
+# AgentFlow AI Backend
 
-A lightweight boilerplate for building scalable Node.js applications using TypeScript. Perfect for rapid development and adhering to best practices!
+AgentFlow AI is a TypeScript/Express backend for a multi-mode AI assistant. It supports natural chat, learning, research, resource finding, lead generation, business strategy, scraping planning, and streaming research workflows backed by MongoDB, Redis, BullMQ, OpenAI, and Gemini.
 
-## 🌟 Features
+## Assistant Architecture
 
-- **TypeScript**: Strong typing for better code quality.
-- **Express**: Fast and minimalist web framework.
-- **ESLint & Prettier**: Maintain code quality and style.
-- **Jest**: Easy testing for reliability.
-- **dotenv-flow**: Manage environment variables effortlessly.
-- **Mongoose**: Simplified MongoDB interactions.
-- **Winston**: Comprehensive logging.
+- Central assistant behavior spec: [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md)
+- Central mode and formatting policy: [src/config/assistant/policy.ts](./src/config/assistant/policy.ts)
+- Heuristic intent, language, and memory helpers: [src/config/assistant/heuristics.ts](./src/config/assistant/heuristics.ts)
+- Prompt builders used by planner and ranker: [src/config/assistant/prompts.ts](./src/config/assistant/prompts.ts)
 
-## 🚀 Getting Started
+## Core Capabilities
 
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/yourusername/base_server.git
-   cd base_server
-   ```
+- ChatGPT-like natural conversation
+- Same-language replies
+- Automatic intent detection across 12 modes
+- Exact-count resource and lead shaping
+- Smart history-aware planning
+- Crawl -> critic -> SSE result pipeline
+- Lead/contact enrichment when website data exposes email or phone
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+## Runtime Requirements
 
-3. **Set up environment files**:
-   Copy `.env.example` and configure.
+- MongoDB
+- Redis on `localhost:6379` unless configured otherwise
+- OpenAI and/or Gemini API keys
+- Search API keys for Tavily, Serper, Brave, SerpAPI, and YouTube as needed
 
-4. **Start development**:
-   ```bash
-   npm run start:dev
-   ```
+## Scripts
 
-## 🛠️ Scripts
+- `npm run build` - compile TypeScript
+- `npm run test` - run tests
+- `npm run lint` - run ESLint
+- `npm run start:dev` - dev runner via nodemon
+- `npm run serve` - run compiled production server
 
-- **Build**: `npm run build` - Compile TypeScript.
-- **Test**: `npm run test` - Run tests.
-- **Lint**: `npm run lint` - Check code for issues.
-- **Fix Linting**: `npm run lint:fix` - Automatically fix lint issues.
-- **Format Check**: `npm run format:check` - Check code formatting.
-- **Fix Formatting**: `npm run format:fix` - Automatically fix formatting.
-- **Migrate Dev**: `npm run migrate:dev` - Run development migrations.
-- **Migrate Prod**: `npm run migrate:prod` - Run production migrations.
-- **Dockerize Dev**: `npm run dockerize:dev` - Build Docker image for development.
+## Notes
 
-## 🤝 Contributing
-
-Contributions are welcome! Fork the repo and submit a pull request.
-
-## 📜 License
-
-MIT License
-```
+- Tests are configured so the MongoDB Winston transport does not create open handles.
+- In the current local environment, `npm run serve` is still blocked until Redis is running on port `6379`.
